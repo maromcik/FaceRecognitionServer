@@ -1,0 +1,9 @@
+Django
+mysqlclient
+numpy
+scipy
+Pillow
+opencv-python
+opencv-contrib-python
+dlib
+
