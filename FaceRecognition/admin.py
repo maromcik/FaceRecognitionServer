@@ -80,45 +80,13 @@ class PersonAdmin(admin.ModelAdmin):
 
 
 class CameraAdmin(admin.ModelAdmin):
+    pass
     # list_filter = ['authorized']
     # search_fields = ['name']
     # fields = ['name', 'authorized', 'file']
     # list_display = ['name', 'authorized', 'image_tag']
     # change_list_template = "FaceRecognition/change_list.html"
 
-    # add links to custom buttons
-    def get_urls(self):
-        urls = super().get_urls()
-        my_urls = [
-            path('encoding/', self.run_encodings),
-            path('load/', self.load_files),
-        ]
-        return my_urls + urls
-
-    # add functionality to custom buttons
-    @method_decorator(login_required(login_url='/admin/login'))
-    def run_encodings(self, request):
-        # triggers running encodings of known persons
-
-        self.message_user(request, "Encodings done!")
-        return HttpResponseRedirect("../")
-
-    @method_decorator(login_required(login_url='/admin/login'))
-    # load files
-    def load_files(self, request):
-
-        self.message_user(request, "Files loaded!")
-        return HttpResponseRedirect("../")
-
-    # there's an image of known person in the fields
-    def image_tag(self, obj):
-        return mark_safe('<img src="{url}" height={height} />'.format(
-            url=obj.file.url,
-            height=150,
-        )
-        )
-
-    image_tag.short_description = 'Image'
 
 # class SettingAdmin(admin.ModelAdmin):
 #     fields = ['device', 'crop']
