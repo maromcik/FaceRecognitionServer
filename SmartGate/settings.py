@@ -28,7 +28,7 @@ ALLOWED_HOSTS = ['192.168.1.12', 'localhost', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
-    'LiveView.apps.LiveViewConfig',
+    'FaceRecognition.apps.FaceRecognitionConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -73,7 +73,7 @@ WSGI_APPLICATION = 'SmartGate.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': "SmartGate",
+        'NAME': "FaceRecognitionServer",
         'USER': 'django',
         'PASSWORD': 'M22ercedes!',
         'HOST': '192.168.1.12',

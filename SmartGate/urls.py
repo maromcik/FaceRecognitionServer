@@ -19,15 +19,13 @@ from django.views.generic.base import TemplateView
 from django.conf.urls.static import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf import settings
-from .views import home, subscribe, unsubscribe
+from .views import home
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('LiveView/', include('LiveView.urls')),
+    path('FaceRecognition/', include('FaceRecognition.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
     path('', home, name='home'),
-    path('subscribe', subscribe, name='subscribe'),
-    path('unsubscribe', unsubscribe, name='unsubscribe'),
     path('sw.js', TemplateView.as_view(template_name='sw.js', content_type='application/x-javascript')),
 ]
 

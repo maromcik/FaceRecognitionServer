@@ -3,7 +3,7 @@ from django.urls import path, include
 from . import views
 
 
-app_name = 'LiveView'
+app_name = 'FaceRecognition'
 urlpatterns = [
     path('', views.index, name='index'),
     path('startAdmin', views.startAdmin, name='startAdmin'),

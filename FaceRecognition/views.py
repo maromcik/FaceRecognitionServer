@@ -8,10 +8,9 @@ import cv2
 import threading
 from queue import Queue
 from multiprocessing.pool import ThreadPool
-from API import FaceRecAPI
+# from API import FaceRecAPI
 import time
 from django.contrib import messages
-from LiveView.models import Subscriber
 
 # get models
 working_file = os.getcwd() + "/models/"
@@ -28,8 +27,8 @@ class RecognitionThreads:
         self.frameQ = Queue(maxsize=5)
         # create lock event
         self.arduino_lock = threading.Lock()
-        self.rec = FaceRecAPI.FaceRecognition(models)
-        self.rec.load_files()
+        # self.rec = FaceRecAPI.FaceRecognition(models)
+        # self.rec.load_files()
 
     # start the recognition or check if it is running
     def startrecognition(self):
@@ -157,7 +156,7 @@ def stream(request):
         print("aborted")
 
 
-# renders LiveView template
+# renders FaceRecognition template
 @login_required(login_url='/accounts/login')
 def index(request):
     user = request.user
@@ -165,8 +164,7 @@ def index(request):
         running = rec_threads.facerecognition_thread.isAlive()
     except AttributeError:
         running = False
-    subscription = Subscriber.objects.get(user=user).subscription
-    return HttpResponse(render(request, 'LiveView/LiveView.html', {'running': running, 'subscription': subscription}))
+    return HttpResponse(render(request, 'LiveView/LiveView.html', {'running': running, 'subscription': "test"}))
 
 
 # starts recognition from the admin interface
@@ -195,9 +193,8 @@ def start(request):
         running = rec_threads.facerecognition_thread.isAlive()
     except AttributeError:
         running = False
-    subscription = Subscriber.objects.get(user=user).subscription
     return HttpResponse(render(request, 'LiveView/LiveView.html',
-                               {'message': message, 'running': running, 'subscription': subscription,
+                               {'message': message, 'running': running, 'subscription': "test",
                                 'status': status}))
 
 
@@ -263,9 +260,8 @@ def stop(request):
         running = rec_threads.facerecognition_thread.isAlive()
     except AttributeError:
         running = False
-    subscription = Subscriber.objects.get(user=user).subscription
     return HttpResponse(render(request, 'LiveView/LiveView.html',
-                               {'message': message, 'running': running, 'subscription': subscription,
+                               {'message': message, 'running': running, 'subscription': "test",
                                 'status': status}))
 
 
@@ -299,7 +295,6 @@ def open(request):
         running = rec_threads.facerecognition_thread.isAlive()
     except AttributeError:
         running = False
-    subscription = Subscriber.objects.get(user=user).subscription
     return HttpResponse(render(request, 'LiveView/LiveView.html',
-                               {'message': message, 'running': running, 'subscription': subscription,
+                               {'message': message, 'running': running, 'subscription': "test",
                                 'status': status}))
