@@ -57,16 +57,14 @@ class PersonAdmin(admin.ModelAdmin):
     @method_decorator(login_required(login_url='/admin/login'))
     def run_encodings(self, request):
         # triggers running encodings of known persons
-        views.rec_threads.rec.load_files()
-        views.rec_threads.rec.known_subjects_descriptors()
-        views.rec_threads.rec.load_files()
+
         self.message_user(request, "Encodings done!")
         return HttpResponseRedirect("../")
 
     @method_decorator(login_required(login_url='/admin/login'))
     # load files
     def load_files(self, request):
-        views.rec_threads.rec.load_files()
+
         self.message_user(request, "Files loaded!")
         return HttpResponseRedirect("../")
 

@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.28, for Linux (x86_64)
 --
--- Host: localhost    Database: SmartGate
+-- Host: localhost    Database: FaceRecognitionServer
 -- ------------------------------------------------------
 -- Server version	8.0.28-0ubuntu0.20.04.3
 

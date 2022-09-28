@@ -301,7 +301,7 @@
 #                     self.PrintText(frame, "unknown", rect[0], rect[1])
 #         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 #         # self.outputQ.put(frame)
-#         # cv2.imshow("SmartGate", image)
+#         # cv2.imshow("FaceRecognitionServer", image)
 #         # cv2.waitKey(1)
 #         return labels, frame, crop
 #

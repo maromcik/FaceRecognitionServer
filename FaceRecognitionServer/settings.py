@@ -26,6 +26,8 @@ DEBUG = True
 ALLOWED_HOSTS = ['192.168.1.12', 'localhost', '127.0.0.1']
 
 # Application definition
+SECRET_KEY = '&21vr&audc=3&vg%b1nkc9!#66!c6-uu6mvdf51**eb2%x4!09'
+
 
 INSTALLED_APPS = [
     'FaceRecognition.apps.FaceRecognitionConfig',
@@ -47,7 +49,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'SmartGate.urls'
+ROOT_URLCONF = 'FaceRecognitionServer.urls'
 
 TEMPLATES = [
     {
@@ -65,7 +67,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'SmartGate.wsgi.application'
+WSGI_APPLICATION = 'FaceRecognitionServer.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases

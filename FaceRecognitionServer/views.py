@@ -12,13 +12,6 @@ from FaceRecognition import views
 @require_GET
 # renders home page
 def home(request):
-    # keys for push notifications
-    webpush_settings = getattr(settings, 'WEBPUSH_SETTINGS', {})
-    vapid_key = webpush_settings.get('VAPID_PUBLIC_KEY')
     user = request.user
-    try:
-        running = views.rec_threads.facerecognition_thread.isAlive()
-    except AttributeError:
-        running = False
     return render(request, 'home.html',
-                  {user: user, 'vapid_key': vapid_key, 'running': running, 'subscription': "test"})
+                  {user: user, 'vapid_key': "3", 'running': True, 'subscription': "test"})

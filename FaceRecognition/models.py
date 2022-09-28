@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 
 class Person(models.Model):
     # fields of the table
+    id = models.AutoField(primary_key=True)
     random_name = models.CharField(max_length=128)
     descriptor = models.CharField(max_length=200)
 
@@ -22,6 +23,7 @@ class Person(models.Model):
 
 
 class Camera(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=20)
     product_number = models.CharField(max_length=128)
     location = models.CharField(max_length=128)
@@ -34,6 +36,7 @@ class Camera(models.Model):
 
 
 class Log(models.Model):
+    id = models.AutoField(primary_key=True)
     person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True)
     camera = models.ForeignKey(Camera, on_delete=models.CASCADE, null=True)
     time = models.DateTimeField('Person seen at')
