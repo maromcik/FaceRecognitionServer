@@ -14,4 +14,4 @@ from FaceRecognition import views
 def home(request):
     user = request.user
     return render(request, 'home.html',
-                  {user: user, 'vapid_key': "3", 'running': True, 'subscription': "test"})
+                  {user: user})

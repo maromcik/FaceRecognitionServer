@@ -1,4 +1,4 @@
-Django
+Django~=4.1.1
 mysqlclient
 numpy
 scipy
@@ -6,4 +6,3 @@ Pillow
 opencv-python
 opencv-contrib-python
 dlib
-
