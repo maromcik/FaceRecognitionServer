@@ -1,4 +1,4 @@
-Django~=4.1.1
+Django
 mysqlclient
 numpy
 scipy
@@ -7,3 +7,5 @@ opencv-python
 opencv-contrib-python
 dlib
 django_cleanup
+paramiko
+psutil

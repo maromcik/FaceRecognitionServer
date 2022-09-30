@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from FaceRecognition.models import Person, Log, Camera, Staff
+from FaceRecognition.models import *
 from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -9,11 +9,10 @@ from django.urls import path
 from FaceRecognition import views
 from django.http import HttpResponseRedirect
 from django.contrib import messages
-from API import FaceRecAPI
+from API import FaceRecAPI, PushConf
 
 
 class PersonAdmin(admin.ModelAdmin):
-    change_list_template = "FaceRecognition/change_list2.html"
     readonly_fields = ['id_in_dsc']
 
     def has_add_permission(self, request, obj=None):
@@ -33,13 +32,13 @@ class PersonAdmin(admin.ModelAdmin):
 
 
 class LogAdmin(admin.ModelAdmin):
-    list_display = ['person', 'time', 'camera', 'get_camera_location']
+    list_display = ['person', 'time', 'camera', 'room']
 
-    def get_camera_location(self, obj):
-        return obj.camera.location
-
-    get_camera_location.admin_order_field = 'camera_location'  # Allows column order sorting
-    get_camera_location.short_description = 'Location of the camera'  # Renames column head
+    # def get_camera_location(self, obj):
+    #     return obj.camera.location
+    #
+    # get_camera_location.admin_order_field = 'camera_location'  # Allows column order sorting
+    # get_camera_location.short_description = 'Location of the camera'  # Renames column head
 
     def has_add_permission(self, request, obj=None):
         if request.user.username == "admin":
@@ -68,6 +67,10 @@ class LogAdmin(admin.ModelAdmin):
             pass
 
     image_tag.short_description = 'Image'
+
+
+class UniPiAdmin(admin.ModelAdmin):
+    list_display = ['name', 'ip']
 
 
 class StaffAdmin(admin.ModelAdmin):
@@ -103,9 +106,40 @@ class StaffAdmin(admin.ModelAdmin):
 
 
 class CameraAdmin(admin.ModelAdmin):
-    list_display = ['name', 'location']
+    list_display = ['name', 'stream']
 
 
+class RoomAdmin(admin.ModelAdmin):
+    list_display = ['name', 'visited']
+
+
+class RoomCameraAdmin(admin.ModelAdmin):
+    list_display = ['room', 'camera']
+
+
+class UniPiCameraAdmin(admin.ModelAdmin):
+    change_list_template = "FaceRecognition/change_list2.html"
+    list_display = ['unipi', 'camera']
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path('push/', self.push_conf),
+        ]
+        return my_urls + urls
+
+    # add functionality to custom buttons
+    @method_decorator(login_required(login_url='/admin/login'))
+    def push_conf(self, request):
+        PushConf.push()
+        self.message_user(request, "Configuration successfully pushed over SSH!")
+        return HttpResponseRedirect("../")
+
+
+admin.site.register(UniPi, UniPiAdmin)
+admin.site.register(Room, RoomAdmin)
+admin.site.register(RoomCamera, RoomCameraAdmin)
+admin.site.register(UniPiCamera, UniPiCameraAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Staff, StaffAdmin)
 admin.site.register(Log, LogAdmin)

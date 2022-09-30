@@ -19,6 +19,7 @@ def load_image(filename):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     return img
 
+
 def process_staff_descriptors_worker(name, file):
     dir_path = os.path.join(os.path.dirname(__file__), "..") + "/media/"
     full_path = dir_path + file
@@ -41,7 +42,7 @@ def process_staff_descriptors():
     staff = database.Staff.objects.all()
     names = list(staff.values_list('name', flat=True))
     files = list(staff.values_list('file', flat=True))
-    pool = mp.Pool(processes=6)
+    pool = mp.Pool(processes=mp.cpu_count())
     descriptors = (pool.starmap(process_staff_descriptors_worker, zip(names, files)))
     descriptors = [item for item in descriptors if item is not None]
     with open('staff_descriptors.pkl', 'wb') as outfile:
