@@ -12,6 +12,16 @@ from django.contrib import messages
 from API import FaceRecAPI, PushConf
 
 
+def run_push_conf(request):
+    ret = PushConf.push()
+    if ret == 0:
+        message = "Configuration successfully pushed over SSH!"
+        messages.success(request, message)
+    else:
+        message = f"Configuration push failed, check device with IP: {ret}!"
+        messages.error(request, message)
+
+
 class PersonAdmin(admin.ModelAdmin):
     readonly_fields = ['id_in_dsc']
 
@@ -69,25 +79,6 @@ class LogAdmin(admin.ModelAdmin):
     image_tag.short_description = 'Image'
 
 
-class UniPiAdmin(admin.ModelAdmin):
-    list_display = ['name', 'ip']
-    change_list_template = "FaceRecognition/change_list2.html"
-
-    def get_urls(self):
-        urls = super().get_urls()
-        my_urls = [
-            path('push/', self.push_conf),
-        ]
-        return my_urls + urls
-
-    # add functionality to custom buttons
-    @method_decorator(login_required(login_url='/admin/login'))
-    def push_conf(self, request):
-        PushConf.push()
-        self.message_user(request, "Configuration successfully pushed over SSH!")
-        return HttpResponseRedirect("../")
-
-
 class StaffAdmin(admin.ModelAdmin):
     search_fields = ['name']
     fields = ['name', 'file']
@@ -124,12 +115,22 @@ class CameraAdmin(admin.ModelAdmin):
     list_display = ['name', 'stream']
 
 
-class RoomAdmin(admin.ModelAdmin):
-    list_display = ['name', 'visited']
+class UniPiAdmin(admin.ModelAdmin):
+    list_display = ['name', 'ip']
+    change_list_template = "FaceRecognition/change_list2.html"
 
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path('push/', self.push_conf),
+        ]
+        return my_urls + urls
 
-class RoomCameraAdmin(admin.ModelAdmin):
-    list_display = ['room', 'camera']
+    # add functionality to custom buttons
+    @method_decorator(login_required(login_url='/admin/login'))
+    def push_conf(self, request):
+        run_push_conf(request)
+        return HttpResponseRedirect("../")
 
 
 class UniPiCameraAdmin(admin.ModelAdmin):
@@ -147,9 +148,17 @@ class UniPiCameraAdmin(admin.ModelAdmin):
     # add functionality to custom buttons
     @method_decorator(login_required(login_url='/admin/login'))
     def push_conf(self, request):
-        PushConf.push()
-        self.message_user(request, "Configuration successfully pushed over SSH!")
+        run_push_conf(request)
         return HttpResponseRedirect("../")
+
+
+class RoomAdmin(admin.ModelAdmin):
+    list_display = ['name', 'visited']
+
+
+class RoomCameraAdmin(admin.ModelAdmin):
+    list_display = ['room', 'camera']
+
 
 
 admin.site.register(UniPi, UniPiAdmin)
