@@ -1,3 +1,5 @@
+import time
+
 from psutil import Process
 import os
 
@@ -12,11 +14,7 @@ RUNNING = False
 
 @login_required(login_url='/accounts/login')
 def start_server(request):
-    global RUNNING
-    if not RUNNING:
-        fr = FaceRecognition()
-        fr.run_server()
-        RUNNING = True
+    if start() == 0:
         message = "Face recognition has been started"
         messages.success(request, message)
     else:
@@ -26,6 +24,35 @@ def start_server(request):
 
 
 def stop_server(request):
+    if stop() == 0:
+        message = "Face recognition has been stopped"
+        messages.success(request, message)
+    else:
+        message = "Face recognition is not running."
+        messages.warning(request, message)
+    return redirect("admin:index")
+
+
+def restart_server(request):
+    stop()
+    time.sleep(1)
+    start()
+    message = "Face recognition has been restarted"
+    messages.success(request, message)
+    return redirect("admin:index")
+
+
+def start():
+    global RUNNING
+    if not RUNNING:
+        fr = FaceRecognition()
+        fr.run_server()
+        RUNNING = True
+        return 0
+    return 1
+
+
+def stop():
     global RUNNING
     if RUNNING:
         parent = Process(os.getpid())
@@ -33,9 +60,6 @@ def stop_server(request):
             child.kill()
         RUNNING = False
         print("All children killed")
-        message = "Face recognition has been stopped"
-        messages.success(request, message)
-    else:
-        message = "Face recognition is not running."
-        messages.warning(request, message)
-    return redirect("admin:index")
+        return 0
+    return 1
+

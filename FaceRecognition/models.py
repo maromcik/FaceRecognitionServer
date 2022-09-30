@@ -7,19 +7,35 @@ from django.contrib.auth.models import User
 class Person(models.Model):
     # fields of the table
     id = models.AutoField(primary_key=True)
-    random_name = models.CharField(max_length=128)
-    descriptor = models.CharField(max_length=200)
+    id_in_dsc = models.CharField(max_length=10)
 
     # display names
     def __str__(self):
-        return self.random_name
+        return self.id_in_dsc
 
     def __unicode__(self):
-        return self.random_name
+        return self.id_in_dsc
 
     # display name of plural forms
     class Meta:
         verbose_name_plural = "persons"
+
+
+class Staff(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50)
+    file = models.ImageField(upload_to="")
+
+    # display names
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
+    # display name of plural forms
+    class Meta:
+        verbose_name_plural = "staff"
 
 
 class Camera(models.Model):
@@ -42,7 +58,7 @@ class Log(models.Model):
     time = models.DateTimeField('Person seen at')
 
     def __str__(self):
-        return str("Person:" + self.person.random_name + " seen at: " + self.camera.location)
+        return str("Person:" + self.person.id_in_dsc + " seen at: " + self.camera.location)
 
     class Meta:
         verbose_name_plural = "logs"

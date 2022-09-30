@@ -6,3 +6,4 @@ Pillow
 opencv-python
 opencv-contrib-python
 dlib
+django_cleanup
