@@ -71,6 +71,21 @@ class LogAdmin(admin.ModelAdmin):
 
 class UniPiAdmin(admin.ModelAdmin):
     list_display = ['name', 'ip']
+    change_list_template = "FaceRecognition/change_list2.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path('push/', self.push_conf),
+        ]
+        return my_urls + urls
+
+    # add functionality to custom buttons
+    @method_decorator(login_required(login_url='/admin/login'))
+    def push_conf(self, request):
+        PushConf.push()
+        self.message_user(request, "Configuration successfully pushed over SSH!")
+        return HttpResponseRedirect("../")
 
 
 class StaffAdmin(admin.ModelAdmin):
@@ -118,8 +133,9 @@ class RoomCameraAdmin(admin.ModelAdmin):
 
 
 class UniPiCameraAdmin(admin.ModelAdmin):
-    change_list_template = "FaceRecognition/change_list2.html"
     list_display = ['unipi', 'camera']
+
+    change_list_template = "FaceRecognition/change_list2.html"
 
     def get_urls(self):
         urls = super().get_urls()

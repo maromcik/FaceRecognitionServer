@@ -4,14 +4,18 @@ import FaceRecognition.models as database
 
 def make_config_file(unipi):
     cameras = database.UniPiCamera.objects.filter(unipi=unipi)
-    print(cameras.values_list())
+    conf = ""
+    for camera in cameras:
+        conf += str(camera.camera.id) + ';' + camera.camera.stream + '\n'
+    return conf
 
 
 def push():
-    ssh = paramiko.SSHClient
+    ssh = paramiko.SSHClient()
+    ssh.load_system_host_keys(filename=None)
     unipis = database.UniPi.objects.all()
-    print(unipis.values_list())
     for unipi in unipis:
-        make_config_file(unipi)
-
-    print("pushing")
+        conf = make_config_file(unipi)
+        ssh.connect(unipi.ip, username=unipi.username, password=unipi.password)
+        _, _, _ = ssh.exec_command(f"echo \"{conf}\" > configuration.conf")
+    print("pushing conf")
