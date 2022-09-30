@@ -65,18 +65,7 @@ class LogAdmin(admin.ModelAdmin):
             return True
         return False
 
-    # there's an image (snapshot)
-    def image_tag(self, obj):
-        try:
-            return mark_safe('<img src="{url}" height={height} />'.format(
-                url=obj.snapshot.url,
-                height=150,
-            )
-            )
-        except ValueError:
-            pass
 
-    image_tag.short_description = 'Image'
 
 
 class StaffAdmin(admin.ModelAdmin):

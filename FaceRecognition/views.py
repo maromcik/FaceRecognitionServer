@@ -20,7 +20,7 @@ def start_server(request):
     else:
         message = "Face recognition is already running."
         messages.warning(request, message)
-    return redirect("admin:index")
+    return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
 def stop_server(request):
@@ -30,7 +30,7 @@ def stop_server(request):
     else:
         message = "Face recognition is not running."
         messages.warning(request, message)
-    return redirect("admin:index")
+    return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
 def restart_server(request):
@@ -39,7 +39,7 @@ def restart_server(request):
     start()
     message = "Face recognition has been restarted"
     messages.success(request, message)
-    return redirect("admin:index")
+    return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
 def start():

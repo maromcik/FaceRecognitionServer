@@ -48,7 +48,7 @@ def process_staff_descriptors():
     with open('staff_descriptors.pkl', 'wb') as outfile:
         pickle.dump(descriptors, outfile, pickle.HIGHEST_PROTOCOL)
     outfile.close()
-    print("descriptors of known people has been saved")
+    print("descriptors of staff have been saved")
 
     if len(descriptors) == 0:
         print("No staff found")
