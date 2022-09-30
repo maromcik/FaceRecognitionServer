@@ -13,4 +13,5 @@ def push():
     print(unipis.values_list())
     for unipi in unipis:
         make_config_file(unipi)
+
     print("pushing")
