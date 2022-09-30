@@ -1,13 +1,16 @@
 from django.db import models
-from django.contrib.auth.models import User
 
 
-# every class represents table in the database
+class Statistic(models.Model):
+    id = models.AutoField(primary_key=True)
+    people_count = models.IntegerField(verbose_name="People count")
+
+
 
 class Person(models.Model):
     # fields of the table
     id = models.AutoField(primary_key=True)
-    id_in_dsc = models.CharField(max_length=10)
+    id_in_dsc = models.CharField(max_length=10, verbose_name="ID in the list of descriptors")
 
     # display names
     def __str__(self):
@@ -40,9 +43,10 @@ class Staff(models.Model):
 
 class Camera(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=20)
-    product_number = models.CharField(max_length=128)
-    location = models.CharField(max_length=128)
+    name = models.CharField(max_length=255)
+    product_number = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    stream = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
@@ -51,14 +55,32 @@ class Camera(models.Model):
         return self.name
 
 
+class UniPi(models.Model):
+    pass
+
+class UniPiCamera(models.Model):
+    pass
+
+class Room(models.Model):
+    id = models.AutoField(primary_key=True)
+    building = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    visited = models.IntegerField()
+    cameras = models.ForeignKey(Camera, on_delete=models.CASCADE, null=True)
+
+
 class Log(models.Model):
     id = models.AutoField(primary_key=True)
     person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True)
     camera = models.ForeignKey(Camera, on_delete=models.CASCADE, null=True)
-    time = models.DateTimeField('Person seen at')
+    time = models.DateTimeField('Seen at')
 
     def __str__(self):
-        return str("Person:" + self.person.id_in_dsc + " seen at: " + self.camera.location)
+        return str("Person " + self.person.id_in_dsc + " seen at " + self.camera.location)
+
+    def __unicode__(self):
+        return str("Person " + self.person.id_in_dsc + " seen at " + self.camera.location)
+
 
     class Meta:
         verbose_name_plural = "logs"

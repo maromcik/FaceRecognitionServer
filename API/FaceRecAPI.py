@@ -17,7 +17,6 @@ sp = dlib.shape_predictor("models/shape_predictor_68_face_landmarks.dat")
 def load_image(filename):
     img = cv2.imread(filename)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    # img = cv2.equalizeHist(img)
     return img
 
 def process_staff_descriptors_worker(name, file):

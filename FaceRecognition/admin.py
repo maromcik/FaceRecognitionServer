@@ -12,8 +12,10 @@ from django.contrib import messages
 from API import FaceRecAPI
 
 
-
 class PersonAdmin(admin.ModelAdmin):
+    change_list_template = "FaceRecognition/change_list2.html"
+    readonly_fields = ['id_in_dsc']
+
     def has_add_permission(self, request, obj=None):
         if request.user.username == "admin":
             return True
@@ -29,15 +31,16 @@ class PersonAdmin(admin.ModelAdmin):
             return True
         return False
 
-# redefines admin interface behaviour
-class LogAdmin(admin.ModelAdmin):
-    # field options
-    list_display = ['person', 'time']
-    # list_filter = ['time', 'granted']
-    # search_fields = ['person__name']
-    # readonly_fields = ['person', 'time', 'granted', 'snapshot']
 
-    # you cannot change logs
+class LogAdmin(admin.ModelAdmin):
+    list_display = ['person', 'time', 'camera', 'get_camera_location']
+
+    def get_camera_location(self, obj):
+        return obj.camera.location
+
+    get_camera_location.admin_order_field = 'camera_location'  # Allows column order sorting
+    get_camera_location.short_description = 'Location of the camera'  # Renames column head
+
     def has_add_permission(self, request, obj=None):
         if request.user.username == "admin":
             return True
@@ -100,12 +103,9 @@ class StaffAdmin(admin.ModelAdmin):
 
 
 class CameraAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['name', 'location']
 
 
-# registers all the models
-admin.site.unregister(User)
-# admin.site.register(User, UserAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Staff, StaffAdmin)
 admin.site.register(Log, LogAdmin)

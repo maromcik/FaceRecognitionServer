@@ -4,10 +4,10 @@ from django.conf.urls.static import static
 from django.conf import settings
 from django.views.generic import RedirectView
 
-
+from FaceRecognitionServer import views
 
 urlpatterns = [
-    path('', RedirectView.as_view(url=reverse_lazy('admin:login'))),
+    path('', views.home, name="home"),
     path('admin/', admin.site.urls),
     path('FaceRecognition/', include('FaceRecognition.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
