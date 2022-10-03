@@ -125,7 +125,7 @@ class FaceRecognition:
 
         temp_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         temp_s.connect(("8.8.8.8", 80))
-        self.port = 5432
+        self.port = 5555
         self.ip = temp_s.getsockname()[0]
         self.addr = self.ip, self.port
         print("IP: ", self.addr)
