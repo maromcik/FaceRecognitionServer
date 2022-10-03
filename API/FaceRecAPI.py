@@ -72,8 +72,7 @@ def load_staff_descriptors():
 
 
 def process_image(descriptors, staff_descriptors, staff, img):
-    pic = dlib.load_rgb_image(f"/home/user/Pictures/test/{img}.jpg")
-    dsc = get_descriptor(pic)
+    dsc = get_descriptor(img)
     descriptors.append(dsc)
     print("shared: ", compare(descriptors, get_descriptor(dlib.load_rgb_image(f"/home/user/Pictures/test/5.jpg"))).tolist())
     if staff:
@@ -81,18 +80,17 @@ def process_image(descriptors, staff_descriptors, staff, img):
 
 
 def process_connection(c, shared_descriptors, shared_staff_descriptors, staff):
-    c.send(str.encode('You are now connected to the replay server... Type BYE to stop'))
-
+    fragments = []
     while True:
-        data = c.recv(2048)
-        message = data.decode('utf-8')
-        if message.strip() == 'BYE':
+        chunk = c.recv(4096)
+        if not chunk:
             break
-        process_image(shared_descriptors, shared_staff_descriptors, staff, int(message.strip()))
-        reply = f'Server: {message}'
-        c.sendall(str.encode(reply))
+        fragments.append(chunk)
+
     c.close()
-    print("client closed")
+    print("image received")
+    img = np.asarray(bytearray(b''.join(fragments)), dtype="uint8")
+    process_image(shared_descriptors, shared_staff_descriptors, staff, img)
     exit(0)
 
 
