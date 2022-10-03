@@ -74,7 +74,6 @@ def load_staff_descriptors():
 def process_image(descriptors, staff_descriptors, staff, img):
     dsc = get_descriptor(img)
     descriptors.append(dsc)
-    print("shared: ", compare(descriptors, get_descriptor(dlib.load_rgb_image(f"/home/user/Pictures/test/5.jpg"))).tolist())
     if staff:
         print("shared staff: ", compare(staff_descriptors, dsc).tolist())
 
@@ -90,7 +89,9 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, staff):
     c.close()
     print("image received")
     img = np.asarray(bytearray(b''.join(fragments)), dtype="uint8")
-    process_image(shared_descriptors, shared_staff_descriptors, staff, img)
+    frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
+    process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
+    # cv2.imwrite(f'{os.getpid()}.jpg', frame)
     exit(0)
 
 
@@ -115,7 +116,6 @@ def server_listener(s):
         print('Connected to: ' + addr[0] + ':' + str(addr[1]))
         p = mp.Process(target=process_connection, args=(c, shared_descriptors, shared_staff_descriptors, staff), daemon=True)
         p.start()
-        print(shared_descriptors)
 
 
 class FaceRecognition:
