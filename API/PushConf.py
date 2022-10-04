@@ -30,3 +30,23 @@ def push():
     ssh.close()
     return 0
 
+
+def restart_unipis():
+    print("restarting all unipis")
+    ssh = paramiko.SSHClient()
+    ssh.load_system_host_keys(filename=None)
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    unipis = database.UniPi.objects.all()
+    for unipi in unipis:
+        try:
+            print("restarting: ", unipi.ip)
+            ssh.connect(unipi.ip, username=unipi.username, password=unipi.password, timeout=5)
+            _, _, _ = ssh.exec_command(f"docker restart face_recognition")
+            print("pushed successfully")
+        except TimeoutError:
+            print("restarting failed: ", unipi.ip)
+            ssh.close()
+            return unipi.ip
+    ssh.close()
+    return 0
+

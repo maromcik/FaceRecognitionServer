@@ -72,10 +72,13 @@ def load_staff_descriptors():
 
 
 def process_image(descriptors, staff_descriptors, staff, img):
+    if len(detector(img, 1)) != 1:
+        print("Invalid face in picture")
+        return
     dsc = get_descriptor(img)
-    descriptors.append(dsc)
+    # descriptors.append(dsc)
+    # print("shared unknown: ", compare(descriptors, dsc).tolist())
     if staff:
-        # compare(staff_descriptors, dsc).tolist()
         print("shared staff: ", compare(staff_descriptors, dsc).tolist())
 
 
