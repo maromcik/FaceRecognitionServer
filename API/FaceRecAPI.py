@@ -75,6 +75,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
     dsc = get_descriptor(img)
     descriptors.append(dsc)
     if staff:
+        # compare(staff_descriptors, dsc).tolist()
         print("shared staff: ", compare(staff_descriptors, dsc).tolist())
 
 
@@ -87,11 +88,14 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, staff):
         fragments.append(chunk)
 
     c.close()
-    print("image received")
+    # print(f"image received from {addr}")
     img = np.asarray(bytearray(b''.join(fragments)), dtype="uint8")
     frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
+    # cv2.imshow("kokot", frame)
+    # cv2.waitKey(500)
     process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
     # cv2.imwrite(f'{os.getpid()}.jpg', frame)
+    # print(f"{addr} done")
     exit(0)
 
 
