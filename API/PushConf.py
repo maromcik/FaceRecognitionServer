@@ -41,7 +41,7 @@ def restart_unipis():
         try:
             print("restarting: ", unipi.ip)
             ssh.connect(unipi.ip, username=unipi.username, password=unipi.password, timeout=5)
-            _, _, _ = ssh.exec_command(f"docker restart face_recognition")
+            _, _, _ = ssh.exec_command(f"docker restart face_rec_rp")
             print("pushed successfully")
         except TimeoutError:
             print("restarting failed: ", unipi.ip)
