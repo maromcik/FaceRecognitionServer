@@ -69,11 +69,11 @@ def load_staff_descriptors():
     return staff_descriptors
 
 
-def compare_all(descriptors, dsc):
+def compare_all(descriptors, dsc, threshold):
     # do for every comparison in the list comparisons
     comparisons = np.linalg.norm(descriptors - dsc, axis=1)
     for i in range(len(comparisons)):
-        if comparisons[i] <= 0.50:
+        if comparisons[i] <= threshold:
             return True, i
     return False, -1
 
@@ -84,7 +84,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
         return None, None
     dsc = get_descriptor(img)
     if staff:
-        exists, idx = compare_all(staff_descriptors, dsc)
+        exists, idx = compare_all(staff_descriptors, dsc, 0.58)
         if exists:
             print("person is staff")
             return False, idx
@@ -92,7 +92,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
         descriptors.append(dsc)
         print("new first person")
         return True, -1
-    exists, idx = compare_all(descriptors, dsc)
+    exists, idx = compare_all(descriptors, dsc, 0.55)
     if exists:
         print("existing person")
         return True, idx

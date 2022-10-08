@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
+from django.utils.html import format_html
+
 from FaceRecognition.models import *
 from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required
@@ -101,9 +103,7 @@ class StaffAdmin(admin.ModelAdmin):
     def image_tag(self, obj):
         return mark_safe('<img src="{url}" height={height} />'.format(
             url=obj.file.url,
-            height=150,
-        )
-        )
+            height=150,))
 
     image_tag.short_description = 'Image'
 
@@ -134,37 +134,13 @@ class UniPiAdmin(admin.ModelAdmin):
         run_restart_docker(request)
         return HttpResponseRedirect("../")
 
-# class UniPiCameraAdmin(admin.ModelAdmin):
-#     list_display = ['unipi', 'camera']
-#
-#     change_list_template = "FaceRecognition/change_list2.html"
-#
-#     def get_urls(self):
-#         urls = super().get_urls()
-#         my_urls = [
-#             path('push/', self.push_conf),
-#         ]
-#         return my_urls + urls
-#
-#     # add functionality to custom buttons
-#     @method_decorator(login_required(login_url='/admin/login'))
-#     def push_conf(self, request):
-#         run_push_conf(request)
-#         return HttpResponseRedirect("../")
-
 
 class RoomAdmin(admin.ModelAdmin):
     list_display = ['name', 'visited']
 
 
-# class RoomCameraAdmin(admin.ModelAdmin):
-#     list_display = ['room', 'camera']
-
-
 admin.site.register(Unipi, UniPiAdmin)
 admin.site.register(Room, RoomAdmin)
-# admin.site.register(RoomCamera, RoomCameraAdmin)
-# admin.site.register(UniPiCamera, UniPiCameraAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Staff, StaffAdmin)
 admin.site.register(Log, LogAdmin)
