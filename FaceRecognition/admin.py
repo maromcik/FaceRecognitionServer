@@ -22,6 +22,16 @@ def run_push_conf(request):
         messages.error(request, message)
 
 
+def run_restart_docker(request):
+    ret = PushConf.restart_docker()
+    if ret == 0:
+        message = "All Docker containers successfully restarted over SSH!"
+        messages.success(request, message)
+    else:
+        message = f"Docker restart failed, check device with IP: {ret}!"
+        messages.error(request, message)
+
+
 class PersonAdmin(admin.ModelAdmin):
     # readonly_fields = ['id_in_dsc']
 
@@ -110,6 +120,7 @@ class UniPiAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         my_urls = [
             path('push/', self.push_conf),
+            path('restart/', self.restart_docker)
         ]
         return my_urls + urls
 
@@ -119,6 +130,9 @@ class UniPiAdmin(admin.ModelAdmin):
         run_push_conf(request)
         return HttpResponseRedirect("../")
 
+    def restart_docker(self, request):
+        run_restart_docker(request)
+        return HttpResponseRedirect("../")
 
 # class UniPiCameraAdmin(admin.ModelAdmin):
 #     list_display = ['unipi', 'camera']

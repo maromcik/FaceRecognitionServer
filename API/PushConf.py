@@ -31,7 +31,7 @@ def push():
     return 0
 
 
-def restart_unipis():
+def restart_docker():
     print("restarting all unipis")
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys(filename=None)
@@ -41,8 +41,8 @@ def restart_unipis():
         try:
             print("restarting: ", unipi.ip)
             ssh.connect(unipi.ip, username=unipi.username, password=unipi.password, timeout=5)
-            _, _, _ = ssh.exec_command(f"docker restart face_rec_rp")
-            print("pushed successfully")
+            _, _, _ = ssh.exec_command("docker restart fr")
+            print("restarted successfully")
         except TimeoutError:
             print("restarting failed: ", unipi.ip)
             ssh.close()
