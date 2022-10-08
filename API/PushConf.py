@@ -14,7 +14,7 @@ def push():
     print("pushing conf")
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys(filename=None)
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.set_missing_host_key_policy(    paramiko.AutoAddPolicy())
     unipis = database.Unipi.objects.all()
     for unipi in unipis:
         conf = make_config_file(unipi)
