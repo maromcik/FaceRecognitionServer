@@ -8,6 +8,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from API.FaceRecAPI import FaceRecognition
+from FaceRecognition.models import Person
 
 # is running
 RUNNING = False
@@ -61,6 +62,8 @@ def stop():
             child.kill()
         RUNNING = False
         print("All children killed")
+        Person.objects.all().delete()
+        print("All persons deleted")
         return 0
     return 1
 
