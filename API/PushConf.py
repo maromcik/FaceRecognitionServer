@@ -23,7 +23,7 @@ def push():
             ssh.connect(unipi.ip, username=unipi.username, password=unipi.password, timeout=5)
             _, _, _ = ssh.exec_command(f"echo \"{conf}\" > configuration.conf")
             print("pushed successfully")
-        except TimeoutError:
+        except (paramiko.AuthenticationException, TimeoutError):
             print("failed: ", unipi.ip)
             ssh.close()
             return unipi.ip
@@ -43,7 +43,7 @@ def restart_docker():
             ssh.connect(unipi.ip, username=unipi.username, password=unipi.password, timeout=5)
             _, _, _ = ssh.exec_command("docker restart fr")
             print("restarted successfully")
-        except TimeoutError:
+        except (paramiko.AuthenticationException, TimeoutError):
             print("restarting failed: ", unipi.ip)
             ssh.close()
             return unipi.ip
