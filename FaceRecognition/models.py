@@ -47,6 +47,7 @@ class Unipi(models.Model):
     ip = models.CharField(max_length=255)
     username = models.CharField(max_length=255, default="pi")
     password = models.CharField(max_length=255, default="raspberry")
+    server_ip = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name

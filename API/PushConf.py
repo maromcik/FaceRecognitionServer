@@ -4,9 +4,9 @@ import FaceRecognition.models as database
 
 def make_config_file(unipi):
     cameras = database.Camera.objects.filter(unipi=unipi)
-    conf = ""
+    conf = unipi.server_ip + '\n'
     for camera in cameras:
-        conf += str(camera.id) + ';' + camera.stream + '\n'
+        conf += "{:07d}".format(camera.id) + ';' + camera.stream + '\n'
     return conf
 
 
