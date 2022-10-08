@@ -104,6 +104,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
 def process_connection(c, shared_descriptors, shared_staff_descriptors, staff):
     db.connections.close_all()
     camera_id = int(c.recv(7).decode())
+    print(f"camera id: {camera_id}")
     camera = database.Camera.objects.get(pk=camera_id)
     room = camera.room
 
