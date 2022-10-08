@@ -23,7 +23,7 @@ def run_push_conf(request):
 
 
 class PersonAdmin(admin.ModelAdmin):
-    readonly_fields = ['id_in_dsc']
+    # readonly_fields = ['id_in_dsc']
 
     def has_add_permission(self, request, obj=None):
         if request.user.username == "admin":
@@ -66,8 +66,6 @@ class LogAdmin(admin.ModelAdmin):
         return False
 
 
-
-
 class StaffAdmin(admin.ModelAdmin):
     search_fields = ['name']
     fields = ['name', 'file']
@@ -101,7 +99,7 @@ class StaffAdmin(admin.ModelAdmin):
 
 
 class CameraAdmin(admin.ModelAdmin):
-    list_display = ['name', 'stream']
+    list_display = ['id', 'name', 'stream', 'room', 'unipi']
 
 
 class UniPiAdmin(admin.ModelAdmin):
@@ -122,38 +120,37 @@ class UniPiAdmin(admin.ModelAdmin):
         return HttpResponseRedirect("../")
 
 
-class UniPiCameraAdmin(admin.ModelAdmin):
-    list_display = ['unipi', 'camera']
-
-    change_list_template = "FaceRecognition/change_list2.html"
-
-    def get_urls(self):
-        urls = super().get_urls()
-        my_urls = [
-            path('push/', self.push_conf),
-        ]
-        return my_urls + urls
-
-    # add functionality to custom buttons
-    @method_decorator(login_required(login_url='/admin/login'))
-    def push_conf(self, request):
-        run_push_conf(request)
-        return HttpResponseRedirect("../")
+# class UniPiCameraAdmin(admin.ModelAdmin):
+#     list_display = ['unipi', 'camera']
+#
+#     change_list_template = "FaceRecognition/change_list2.html"
+#
+#     def get_urls(self):
+#         urls = super().get_urls()
+#         my_urls = [
+#             path('push/', self.push_conf),
+#         ]
+#         return my_urls + urls
+#
+#     # add functionality to custom buttons
+#     @method_decorator(login_required(login_url='/admin/login'))
+#     def push_conf(self, request):
+#         run_push_conf(request)
+#         return HttpResponseRedirect("../")
 
 
 class RoomAdmin(admin.ModelAdmin):
     list_display = ['name', 'visited']
 
 
-class RoomCameraAdmin(admin.ModelAdmin):
-    list_display = ['room', 'camera']
+# class RoomCameraAdmin(admin.ModelAdmin):
+#     list_display = ['room', 'camera']
 
 
-
-admin.site.register(UniPi, UniPiAdmin)
+admin.site.register(Unipi, UniPiAdmin)
 admin.site.register(Room, RoomAdmin)
-admin.site.register(RoomCamera, RoomCameraAdmin)
-admin.site.register(UniPiCamera, UniPiCameraAdmin)
+# admin.site.register(RoomCamera, RoomCameraAdmin)
+# admin.site.register(UniPiCamera, UniPiCameraAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Staff, StaffAdmin)
 admin.site.register(Log, LogAdmin)

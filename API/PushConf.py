@@ -3,10 +3,10 @@ import FaceRecognition.models as database
 
 
 def make_config_file(unipi):
-    cameras = database.UniPiCamera.objects.filter(unipi=unipi)
+    cameras = database.Camera.objects.filter(unipi=unipi)
     conf = ""
     for camera in cameras:
-        conf += str(camera.camera.id) + ';' + camera.camera.stream + '\n'
+        conf += str(camera.id) + ';' + camera.stream + '\n'
     return conf
 
 
@@ -15,7 +15,7 @@ def push():
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys(filename=None)
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    unipis = database.UniPi.objects.all()
+    unipis = database.Unipi.objects.all()
     for unipi in unipis:
         conf = make_config_file(unipi)
         try:
@@ -36,7 +36,7 @@ def restart_unipis():
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys(filename=None)
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    unipis = database.UniPi.objects.all()
+    unipis = database.Unipi.objects.all()
     for unipi in unipis:
         try:
             print("restarting: ", unipi.ip)

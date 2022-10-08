@@ -4,6 +4,8 @@ import socket
 import multiprocessing as mp
 import dlib
 import numpy as np
+from django.utils import timezone
+
 import FaceRecognition.models as database
 import cv2
 from django import db
@@ -60,10 +62,6 @@ def get_descriptor(face_chip):
     return np.array(resnet.compute_face_descriptor(face_chip))
 
 
-def compare(known, unknown):
-    return np.linalg.norm(known - unknown, axis=1)
-
-
 def load_staff_descriptors():
     with open('staff_descriptors.pkl', 'rb') as infile:
         staff_descriptors = pickle.load(infile)
@@ -71,18 +69,44 @@ def load_staff_descriptors():
     return staff_descriptors
 
 
+def compare_all(descriptors, dsc):
+    # do for every comparison in the list comparisons
+    comparisons = np.linalg.norm(descriptors - dsc, axis=1)
+    for i in range(len(comparisons)):
+        if comparisons[i] <= 0.50:
+            return True, i
+    return False, -1
+
+
 def process_image(descriptors, staff_descriptors, staff, img):
     if len(detector(img, 1)) != 1:
         print("Invalid face in picture")
-        return
+        return None, None
     dsc = get_descriptor(img)
-    # descriptors.append(dsc)
-    # print("shared unknown: ", compare(descriptors, dsc).tolist())
     if staff:
-        print("shared staff: ", compare(staff_descriptors, dsc).tolist())
+        exists, idx = compare_all(staff_descriptors, dsc)
+        if exists:
+            print("person is staff")
+            return False, idx
+    if len(descriptors) == 0:
+        descriptors.append(dsc)
+        print("new first person")
+        return True, -1
+    exists, idx = compare_all(descriptors, dsc)
+    if exists:
+        print("existing person")
+        return True, idx
+    descriptors.append(dsc)
+    print("new person")
+    return True, -1
 
 
 def process_connection(c, shared_descriptors, shared_staff_descriptors, staff):
+    db.connections.close_all()
+    camera_id = int(c.recv(7).decode())
+    camera = database.Camera.objects.get(pk=camera_id)
+    room = camera.room
+
     fragments = []
     while True:
         chunk = c.recv(4096)
@@ -91,14 +115,18 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, staff):
         fragments.append(chunk)
 
     c.close()
-    # print(f"image received from {addr}")
     img = np.asarray(bytearray(b''.join(fragments)), dtype="uint8")
     frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
-    # cv2.imshow("kokot", frame)
-    # cv2.waitKey(500)
-    process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
-    # cv2.imwrite(f'{os.getpid()}.jpg', frame)
-    # print(f"{addr} done")
+    write_db, idx = process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
+    print(len(shared_descriptors))
+    if write_db and idx == -1:
+        print(f"creating new person with id {len(shared_descriptors) - 1}")
+        person = database.Person.objects.create(id_in_dsc=len(shared_descriptors) - 1)
+        database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
+    elif write_db and idx != -1:
+        print(f"logging person with id {idx}")
+        person = database.Person.objects.get(id_in_dsc=idx)
+        database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
     exit(0)
 
 
@@ -120,7 +148,7 @@ def server_listener(s):
     s.listen(1000)
     while True:
         c, addr = s.accept()
-        print('Connected to: ' + addr[0] + ':' + str(addr[1]))
+        # print('Connected to: ' + addr[0] + ':' + str(addr[1]))
         p = mp.Process(target=process_connection, args=(c, shared_descriptors, shared_staff_descriptors, staff), daemon=True)
         p.start()
 

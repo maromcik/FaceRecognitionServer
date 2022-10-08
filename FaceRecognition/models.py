@@ -32,79 +32,47 @@ class Staff(models.Model):
 class Room(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
-    visited = models.IntegerField()
-    cameras = models.ManyToManyField('Camera', through='RoomCamera', related_name='rooms')
+    visited = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
 
     def __unicode__(self):
         return self.name
+
+
+class Unipi(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    ip = models.CharField(max_length=255)
+    username = models.CharField(max_length=255, default="pi")
+    password = models.CharField(max_length=255, default="raspberry")
+
+    def __str__(self):
+        return self.name
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Unipis"
 
 
 class Camera(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     stream = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
-
-    def __unicode__(self):
-        return self.name
-
-
-class RoomCamera(models.Model):
-    id = models.AutoField(primary_key=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
-    camera = models.ForeignKey(Camera, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return str("Room " + self.room.name + " with " + self.camera.name)
-
-    def __unicode__(self):
-        return str("Room " + self.room.name + " with " + self.camera.name)
-
-
-    class Meta:
-        verbose_name_plural = "Rooms and Cameras"
-
-
-class UniPi(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
-    ip = models.CharField(max_length=255)
-    username = models.CharField(max_length=255, default="pi")
-    password = models.CharField(max_length=255, default="raspberry")
-    cameras = models.ManyToManyField('Camera', through='UniPiCamera', related_name='unipis')
+    unipi = models.ForeignKey(Unipi, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
+
     def __unicode__(self):
         return self.name
 
-    class Meta:
-        verbose_name_plural = "UniPis"
 
-
-class UniPiCamera(models.Model):
-    id = models.AutoField(primary_key=True)
-    unipi = models.ForeignKey(UniPi, on_delete=models.CASCADE)
-    camera = models.ForeignKey(Camera, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return str("UniPi " + self.unipi.name + " with " + self.camera.name)
-
-    def __unicode__(self):
-        return str("UniPi " + self.unipi.name + " with " + self.camera.name)
-    class Meta:
-        verbose_name_plural = "UniPis and Cameras"
-
-
-
-
-
-class Log(models.Model):
+class Log(models
+          .Model):
     id = models.AutoField(primary_key=True)
     person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True)
     camera = models.ForeignKey(Camera, on_delete=models.CASCADE, null=True)
@@ -112,11 +80,12 @@ class Log(models.Model):
     time = models.DateTimeField('Seen at')
 
     def __str__(self):
-        return str("Person " + self.person.id_in_dsc + " seen at " + self.camera.location)
+        return str("Person " + self.person.id_in_dsc + " seen at " + self.camera.room.name)
 
     def __unicode__(self):
-        return str("Person " + self.person.id_in_dsc + " seen at " + self.camera.location)
-
+        return str("Person " + self.person.id_in_dsc + " seen at " + self.camera.room.name)
 
     class Meta:
         verbose_name_plural = "logs"
+
+
