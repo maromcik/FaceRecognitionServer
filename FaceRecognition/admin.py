@@ -109,11 +109,11 @@ class StaffAdmin(admin.ModelAdmin):
 
 
 class CameraAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'stream', 'room', 'unipi']
+    list_display = ['id', 'name', 'stream', 'room']
 
 
 class UniPiAdmin(admin.ModelAdmin):
-    list_display = ['name', 'ip', 'server_ip']
+    list_display = ['name', 'ip', 'server_ip', 'camera1', 'camera2']
     change_list_template = "FaceRecognition/change_list2.html"
 
     def get_urls(self):

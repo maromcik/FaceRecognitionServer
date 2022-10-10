@@ -41,6 +41,19 @@ class Room(models.Model):
         return self.name
 
 
+class Camera(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    stream = models.CharField(max_length=255)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
+
 class Unipi(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
@@ -48,9 +61,12 @@ class Unipi(models.Model):
     username = models.CharField(max_length=255, default="pi")
     password = models.CharField(max_length=255, default="raspberry")
     server_ip = models.CharField(max_length=255)
+    camera1 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera1")
+    camera2 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera2", default=None, null=True, blank=True)
 
     def __str__(self):
         return self.name
+
     def __unicode__(self):
         return self.name
 
@@ -58,22 +74,7 @@ class Unipi(models.Model):
         verbose_name_plural = "Unipis"
 
 
-class Camera(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
-    stream = models.CharField(max_length=255)
-    room = models.ForeignKey(Room, on_delete=models.CASCADE)
-    unipi = models.ForeignKey(Unipi, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.name
-
-    def __unicode__(self):
-        return self.name
-
-
-class Log(models
-          .Model):
+class Log(models.Model):
     id = models.AutoField(primary_key=True)
     person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True)
     camera = models.ForeignKey(Camera, on_delete=models.CASCADE, null=True)

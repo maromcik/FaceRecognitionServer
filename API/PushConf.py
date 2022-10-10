@@ -3,40 +3,23 @@ import FaceRecognition.models as database
 
 
 def make_config_file(unipi):
-    cameras = database.Camera.objects.filter(unipi=unipi)
+    # cameras = database.Camera.objects.filter(unipi=unipi)
+    # conf = unipi.server_ip + '\n'
+    # for camera in cameras:
+    #     conf += "{:07d}".format(camera.id) + ';' + camera.stream + '\n'
+    # return conf
     conf = unipi.server_ip + '\n'
-    for camera in cameras:
-        conf += "{:07d}".format(camera.id) + ';' + camera.stream + '\n'
+    conf += "{:07d}".format(unipi.camera1.id) + ';' + unipi.camera1.stream + '\n'
+    if unipi.camera2 is not None:
+        conf += "{:07d}".format(unipi.camera2.id) + ';' + unipi.camera2.stream + '\n'
     return conf
-
-
-
-
-def push_single(unipi_pk):
-    print("pushing conf")
-    ssh = paramiko.SSHClient()
-    ssh.load_system_host_keys(filename=None)
-    ssh.set_missing_host_key_policy(    paramiko.AutoAddPolicy())
-    unipi = database.Unipi.objects.get(pk=unipi_pk)
-    conf = make_config_file(unipi)
-    try:
-        print("pushing to: ", unipi.ip)
-        ssh.connect(unipi.ip, username=unipi.username, password=unipi.password, timeout=5)
-        _, _, _ = ssh.exec_command(f"echo \"{conf}\" > configuration.conf")
-        print("pushed successfully")
-    except (paramiko.AuthenticationException, TimeoutError):
-        print("failed: ", unipi.ip)
-        ssh.close()
-        return unipi.ip
-    ssh.close()
-    return 0
 
 
 def push():
     print("pushing conf")
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys(filename=None)
-    ssh.set_missing_host_key_policy(    paramiko.AutoAddPolicy())
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     unipis = database.Unipi.objects.all()
     for unipi in unipis:
         conf = make_config_file(unipi)
