@@ -86,18 +86,19 @@ def process_image(descriptors, staff_descriptors, staff, img):
     if staff:
         exists, idx = compare_all(staff_descriptors, dsc, 0.58)
         if exists:
+            # this person is staff
             print("person is staff")
             return False, idx
     if len(descriptors) == 0:
         descriptors.append(dsc)
-        print("new first person")
+        # this is a new person and shared descriptors are empty
         return True, -1
     exists, idx = compare_all(descriptors, dsc, 0.55)
     if exists:
-        print("existing person")
+        # this is an existing person
         return True, idx
     descriptors.append(dsc)
-    print("new person")
+    # this is a new person
     return True, -1
 
 
@@ -119,8 +120,10 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, staff):
     img = np.asarray(bytearray(b''.join(fragments)), dtype="uint8")
     frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
     write_db, idx = process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
-    print(len(shared_descriptors))
-    if write_db and idx == -1:
+
+    if write_db and database.Log.objects.all().count() > 0 and int(idx) == int(database.Log.objects.latest('time').person.id_in_dsc):
+        print("skipping logging")
+    elif write_db and idx == -1:
         print(f"creating new person with id {len(shared_descriptors) - 1}")
         person = database.Person.objects.create(id_in_dsc=len(shared_descriptors) - 1)
         database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
