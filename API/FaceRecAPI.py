@@ -12,7 +12,6 @@ import FaceRecognition.models as database
 import cv2
 from django import db
 
-
 resnet = dlib.face_recognition_model_v1("models/dlib_face_recognition_resnet_model_v1.dat")
 arcface_model = ArcFace.ArcFace()
 detector = dlib.get_frontal_face_detector()
@@ -24,6 +23,7 @@ model = "arcface"
 def dlib_dsc(face):
     return np.array(resnet.compute_face_descriptor(face))
 
+
 def arcface_dsc(face):
     return arcface_model.calc_emb(face)
 
@@ -34,7 +34,6 @@ models = {"dlib": dlib_dsc,
 
 def get_descriptor(face, model):
     return models[model](face)
-
 
 
 def dlib_compare(descriptors, dsc, threshold):
@@ -54,8 +53,9 @@ def arcface_compare(descriptors, dsc, threshold):
             return True, i
     return False, -1
 
+
 comparison = {"dlib": dlib_compare,
-          "arcface": arcface_compare}
+              "arcface": arcface_compare}
 
 
 def compare_all(descriptors, dsc, threshold, model):
@@ -63,7 +63,6 @@ def compare_all(descriptors, dsc, threshold, model):
 
 
 def process_image(descriptors, staff_descriptors, staff, img):
-
     if len(detector(img, 1)) != 1:
         print("Invalid face in picture")
         return None, None
@@ -113,7 +112,8 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, staff):
         last_person = int(last_log.person.id_in_dsc)
         last_camera = int(last_log.camera.id)
 
-    if write_db and last_person is not None and last_camera is not None and camera_id == last_camera and int(idx) == last_person:
+    if write_db and last_person is not None and last_camera is not None and camera_id == last_camera and int(
+            idx) == last_person:
         print("skipping logging")
     elif write_db and idx == -1:
         print(f"creating new person with id {len(shared_descriptors) - 1}")
@@ -175,15 +175,16 @@ def server_listener(s):
     while True:
         c, addr = s.accept()
         # print('Connected to: ' + addr[0] + ':' + str(addr[1]))
-        p = mp.Process(target=process_connection, args=(c, shared_descriptors, shared_staff_descriptors, staff), daemon=True)
+        p = mp.Process(target=process_connection, args=(c, shared_descriptors, shared_staff_descriptors, staff),
+                       daemon=True)
         p.start()
-
 
 
 def load_image(filename):
     img = cv2.imread(filename)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     return img
+
 
 def process_staff_descriptors_worker(name, file):
     dir_path = os.path.join(os.path.dirname(__file__), "..") + "/media/"
@@ -221,9 +222,9 @@ def process_staff_descriptors():
         return -1
     return 0
 
+
 class FaceRecognition:
     def __init__(self):
-
         temp_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         temp_s.connect(("8.8.8.8", 80))
         self.port = 5555
@@ -243,8 +244,5 @@ class FaceRecognition:
     def run_server(self):
         self.s.bind(self.addr)
 
-        p = mp.Process(target=server_listener, args=(self.s, ))
+        p = mp.Process(target=server_listener, args=(self.s,))
         p.start()
-
-
-
