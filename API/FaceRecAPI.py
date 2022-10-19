@@ -2,6 +2,7 @@ import os
 import pickle
 import socket
 import multiprocessing as mp
+from apscheduler.schedulers.background import BackgroundScheduler
 import dlib
 import numpy as np
 from django.utils import timezone
@@ -78,6 +79,24 @@ def compare_all(descriptors, dsc, threshold):
     return False, -1
 
 
+def prune_logs(descriptors):
+    print("Pruning")
+    i = 0
+    while i < len(descriptors):
+        comparisons = np.linalg.norm(descriptors - descriptors[i], axis=1)
+        for j in range(len(comparisons)):
+            if 0.01 <= comparisons[j] <= 0.6:
+                print(j, comparisons[j])
+                descriptors.pop(j)
+        i += 1
+        print("length:", len(descriptors))
+
+    # for i in range(len(descriptors)):
+    #     comparisons = np.linalg.norm(descriptors - descriptors[i], axis=1)
+    #     for j in range(len(comparisons)):
+    #         if 0.01 <= comparisons[j] <= 0.6:
+
+
 def process_image(descriptors, staff_descriptors, staff, img):
     if len(detector(img, 1)) != 1:
         print("Invalid face in picture")
@@ -121,7 +140,14 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, staff):
     frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
     write_db, idx = process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
 
-    if write_db and database.Log.objects.all().count() > 0 and int(idx) == int(database.Log.objects.latest('time').person.id_in_dsc):
+    last_person = None
+    last_camera = None
+    if database.Log.objects.all().count() > 0:
+        last_log = database.Log.objects.latest('time')
+        last_person = int(last_log.person.id_in_dsc)
+        last_camera = int(last_log.camera.id)
+
+    if write_db and last_person is not None and last_camera is not None and camera_id == last_camera and int(idx) == last_person:
         print("skipping logging")
     elif write_db and idx == -1:
         print(f"creating new person with id {len(shared_descriptors) - 1}")
@@ -149,6 +175,11 @@ def server_listener(s):
         else:
             staff = False
             print("Staff file will not be used:")
+
+    pruner = BackgroundScheduler()
+    pruner.add_job(prune_logs, 'interval', seconds=30, args=(shared_descriptors,))
+    pruner.start()
+
     s.listen(1000)
     while True:
         c, addr = s.accept()
