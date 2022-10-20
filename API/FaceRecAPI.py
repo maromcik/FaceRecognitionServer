@@ -108,8 +108,8 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, person_m
 
     last_person = None
     last_camera = None
-    if database.Log.objects.all().count() > 0:
-        last_log = database.Log.objects.latest('time')
+    if database.Log.objects.all().count() > 0 and idx in person_map:
+        last_log = database.Log.objects.filter(person__id=person_map[idx]).latest('time')
         last_person = int(last_log.person.id)
         last_camera = int(last_log.camera.id)
 
