@@ -3,6 +3,8 @@ import os
 import pickle
 import socket
 import multiprocessing as mp
+import time
+
 from apscheduler.schedulers.background import BackgroundScheduler
 import dlib
 import numpy as np
@@ -89,6 +91,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
 
 def process_connection(c, shared_descriptors, shared_staff_descriptors, person_map, staff):
     db.connections.close_all()
+    start = time.time()
     camera_id = int(c.recv(7).decode())
     # print(f"camera id: {camera_id}")
     camera = database.Camera.objects.get(pk=camera_id)
@@ -128,6 +131,8 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, person_m
             database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
         else:
             print(f"person {idx} already deleted")
+    db.connections.close_all()
+    print("total time: ", time.time() - start)
     exit(0)
 
 
@@ -147,10 +152,14 @@ def prune_logs(descriptors, person_map):
         print(comparisons)
         for idx in range(len(comparisons) - 1, -1, -1):
             if 0.01 <= comparisons[idx] <= 0.62:
-                database.Person.objects.get(id=person_map[idx]).delete()
-                del person_map[idx]
-                del descriptors[idx]
-                print(f"person with {idx} deleted")
+                if idx in person_map:
+                    database.Person.objects.get(id=person_map[idx]).delete()
+                    del person_map[idx]
+                    del descriptors[idx]
+                    print(f"person with {idx} deleted")
+                else:
+                    print(f"no such person, deleting {idx}")
+                    del descriptors[idx]
         i += 1
 
 
@@ -176,13 +185,15 @@ def server_listener(s):
     pruner.start()
 
     s.listen(1000)
+    count = 0
     while True:
+        count += 1
+        print("image count", count)
         c, addr = s.accept()
         # print('Connected to: ' + addr[0] + ':' + str(addr[1]))
         p = mp.Process(target=process_connection, args=(c, shared_descriptors, shared_staff_descriptors, person_map, staff),
                        daemon=True)
         p.start()
-
 
 def load_image(filename):
     img = cv2.imread(filename)
