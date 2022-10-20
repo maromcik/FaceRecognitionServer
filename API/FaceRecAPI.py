@@ -17,7 +17,7 @@ arcface_model = ArcFace.ArcFace()
 detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor("models/shape_predictor_68_face_landmarks.dat")
 
-model = "arcface"
+model = "dlib"
 
 
 def dlib_dsc(face):
@@ -32,8 +32,8 @@ models = {"dlib": dlib_dsc,
           "arcface": arcface_dsc}
 
 
-def get_descriptor(face, model):
-    return models[model](face)
+def get_descriptor(face, m):
+    return models[m](face)
 
 
 def dlib_compare(descriptors, dsc, threshold):
@@ -58,8 +58,8 @@ comparison = {"dlib": dlib_compare,
               "arcface": arcface_compare}
 
 
-def compare_all(descriptors, dsc, threshold, model):
-    return comparison[model](descriptors, dsc, threshold)
+def compare_all(descriptors, dsc, threshold, m):
+    return comparison[m](descriptors, dsc, threshold)
 
 
 def process_image(descriptors, staff_descriptors, staff, img):
