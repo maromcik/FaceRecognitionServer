@@ -66,25 +66,25 @@ def compare_all(descriptors, dsc, threshold, m):
 def process_image(descriptors, staff_descriptors, staff, img):
     if len(detector(img, 1)) != 1:
         print("Invalid face in picture")
-        return None, None
+        return None, None, None
     dsc = get_descriptor(img, model)
     if staff:
         exists, idx = compare_all(staff_descriptors, dsc, 0.58, model)
         if exists:
             # this person is staff
             print("person is staff")
-            return False, idx
+            return False, idx, False
     if len(descriptors) == 0:
         descriptors.append(dsc)
         # this is a new person and shared descriptors are empty
-        return True, -1
+        return True, 0, True
     exists, idx = compare_all(descriptors, dsc, 0.55, model)
     if exists:
         # this is an existing person
-        return True, idx
+        return True, idx, False
     descriptors.append(dsc)
     # this is a new person
-    return True, -1
+    return True, len(descriptors) - 1, True
 
 
 def process_connection(c, shared_descriptors, shared_staff_descriptors, person_map, staff):
@@ -104,7 +104,7 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, person_m
     c.close()
     img = np.asarray(bytearray(b''.join(fragments)), dtype="uint8")
     frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
-    write_db, idx = process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
+    write_db, idx, new_idx = process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
 
     last_person = None
     last_camera = None
@@ -116,12 +116,12 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, person_m
     if write_db and last_person is not None and last_camera is not None \
             and camera_id == last_camera and person_map.get(idx, -1) == last_person:
         print(f"skipping {idx}")
-    elif write_db and idx == -1:
-        print(f"new person with id {len(shared_descriptors) - 1}")
+    elif write_db and new_idx:
+        print(f"new person with id {idx}")
         person = database.Person.objects.create()
-        person_map[len(shared_descriptors) - 1] = person.id
+        person_map[idx] = person.id
         database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
-    elif write_db and idx != -1:
+    elif write_db and not new_idx:
         if idx in person_map:
             print(f"logging with id {idx}")
             person = database.Person.objects.get(id=person_map[idx])
