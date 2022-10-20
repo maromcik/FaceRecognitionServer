@@ -139,6 +139,8 @@ def load_staff_descriptors():
 
 
 def prune_logs(descriptors, person_map):
+    print("descriptors", len(descriptors))
+    print("personmap", len(person_map), "ids:", person_map)
     i = 0
     while i < len(descriptors):
         comparisons = np.linalg.norm(descriptors - descriptors[i], axis=1)
@@ -148,6 +150,7 @@ def prune_logs(descriptors, person_map):
                 database.Person.objects.get(id=person_map[idx]).delete()
                 del person_map[idx]
                 del descriptors[idx]
+                print(f"person with {idx} deleted")
         i += 1
 
 
