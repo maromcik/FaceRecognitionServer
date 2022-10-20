@@ -1,3 +1,4 @@
+import itertools
 import os
 import pickle
 import socket
@@ -86,10 +87,10 @@ def process_image(descriptors, staff_descriptors, staff, img):
     return True, -1
 
 
-def process_connection(c, shared_descriptors, shared_staff_descriptors, staff):
+def process_connection(c, shared_descriptors, shared_staff_descriptors, person_map, staff):
     db.connections.close_all()
     camera_id = int(c.recv(7).decode())
-    print(f"camera id: {camera_id}")
+    # print(f"camera id: {camera_id}")
     camera = database.Camera.objects.get(pk=camera_id)
     room = camera.room
 
@@ -109,20 +110,24 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, staff):
     last_camera = None
     if database.Log.objects.all().count() > 0:
         last_log = database.Log.objects.latest('time')
-        last_person = int(last_log.person.id_in_dsc)
+        last_person = int(last_log.person.id)
         last_camera = int(last_log.camera.id)
 
-    if write_db and last_person is not None and last_camera is not None and camera_id == last_camera and int(
-            idx) == last_person:
-        print("skipping logging")
+    if write_db and last_person is not None and last_camera is not None \
+            and camera_id == last_camera and person_map.get(idx, -1) == last_person:
+        print(f"skipping {idx}")
     elif write_db and idx == -1:
-        print(f"creating new person with id {len(shared_descriptors) - 1}")
-        person = database.Person.objects.create(id_in_dsc=len(shared_descriptors) - 1)
+        print(f"new person with id {len(shared_descriptors) - 1}")
+        person = database.Person.objects.create()
+        person_map[len(shared_descriptors) - 1] = person.id
         database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
     elif write_db and idx != -1:
-        print(f"logging person with id {idx}")
-        person = database.Person.objects.get(id_in_dsc=idx)
-        database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
+        if idx in person_map:
+            print(f"logging with id {idx}")
+            person = database.Person.objects.get(id=person_map[idx])
+            database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
+        else:
+            print(f"person {idx} already deleted")
     exit(0)
 
 
@@ -133,28 +138,24 @@ def load_staff_descriptors():
     return staff_descriptors
 
 
-def prune_logs(descriptors):
-    print("Pruning")
+def prune_logs(descriptors, person_map):
     i = 0
     while i < len(descriptors):
         comparisons = np.linalg.norm(descriptors - descriptors[i], axis=1)
-        for j in range(len(comparisons)):
-            if 0.01 <= comparisons[j] <= 0.6:
-                print(j, comparisons[j])
-                descriptors.pop(j)
+        print(comparisons)
+        for idx in range(len(comparisons) - 1, -1, -1):
+            if 0.01 <= comparisons[idx] <= 0.62:
+                database.Person.objects.get(id=person_map[idx]).delete()
+                del person_map[idx]
+                del descriptors[idx]
         i += 1
-        print("length:", len(descriptors))
-
-    # for i in range(len(descriptors)):
-    #     comparisons = np.linalg.norm(descriptors - descriptors[i], axis=1)
-    #     for j in range(len(comparisons)):
-    #         if 0.01 <= comparisons[j] <= 0.6:
 
 
 def server_listener(s):
     manager = mp.Manager()
     shared_descriptors = manager.list()
     shared_staff_descriptors = manager.list()
+    person_map = manager.dict()
     staff = True
     try:
         shared_staff_descriptors[:] = load_staff_descriptors()[:]
@@ -168,14 +169,14 @@ def server_listener(s):
             print("Staff file will not be used:")
 
     pruner = BackgroundScheduler()
-    pruner.add_job(prune_logs, 'interval', seconds=30, args=(shared_descriptors,))
+    pruner.add_job(prune_logs, 'interval', seconds=30, args=(shared_descriptors, person_map))
     pruner.start()
 
     s.listen(1000)
     while True:
         c, addr = s.accept()
         # print('Connected to: ' + addr[0] + ':' + str(addr[1]))
-        p = mp.Process(target=process_connection, args=(c, shared_descriptors, shared_staff_descriptors, staff),
+        p = mp.Process(target=process_connection, args=(c, shared_descriptors, shared_staff_descriptors, person_map, staff),
                        daemon=True)
         p.start()
 

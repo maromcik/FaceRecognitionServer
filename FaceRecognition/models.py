@@ -3,12 +3,11 @@ from django.db import models
 
 class Person(models.Model):
     id = models.AutoField(primary_key=True)
-    id_in_dsc = models.CharField(max_length=10, verbose_name="ID in the list of descriptors")
     def __str__(self):
-        return self.id_in_dsc
+        return str(self.id)
 
     def __unicode__(self):
-        return self.id_in_dsc
+        return str(self.id)
 
     class Meta:
         verbose_name_plural = "persons"
@@ -82,10 +81,10 @@ class Log(models.Model):
     time = models.DateTimeField('Seen at')
 
     def __str__(self):
-        return str("Person " + self.person.id_in_dsc + " seen at " + self.camera.room.name)
+        return "Person " + str(self.person.id) + " seen at " + self.camera.room.name
 
     def __unicode__(self):
-        return str("Person " + self.person.id_in_dsc + " seen at " + self.camera.room.name)
+        return "Person " + str(self.person.id) + " seen at " + self.camera.room.name
 
     class Meta:
         verbose_name_plural = "logs"

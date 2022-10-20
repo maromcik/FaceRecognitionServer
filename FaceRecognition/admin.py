@@ -35,7 +35,7 @@ def run_restart_docker(request):
 
 
 class PersonAdmin(admin.ModelAdmin):
-    # readonly_fields = ['id_in_dsc']
+    list_display = ['id']
 
     def has_add_permission(self, request, obj=None):
         if request.user.username == "admin":
