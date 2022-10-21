@@ -45,6 +45,8 @@ class Camera(models.Model):
     name = models.CharField(max_length=255)
     stream = models.CharField(max_length=255)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    entrance = models.BooleanField(default=False)
+    exit = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -62,6 +64,8 @@ class Unipi(models.Model):
     server_ip = models.CharField(max_length=255)
     camera1 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera1")
     camera2 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera2", default=None, null=True, blank=True)
+    push = models.BooleanField(default=True)
+    restart = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -88,5 +92,3 @@ class Log(models.Model):
 
     class Meta:
         verbose_name_plural = "logs"
-
-

@@ -22,16 +22,19 @@ def push():
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     unipis = database.Unipi.objects.all()
     for unipi in unipis:
-        conf = make_config_file(unipi)
-        try:
-            print("pushing to: ", unipi.ip)
-            ssh.connect(unipi.ip, username=unipi.username, password=unipi.password, timeout=5)
-            _, _, _ = ssh.exec_command(f"echo \"{conf}\" > configuration.conf")
-            print("pushed successfully")
-        except (paramiko.AuthenticationException, TimeoutError):
-            print("failed: ", unipi.ip)
-            ssh.close()
-            return unipi.ip
+        if unipi.push:
+            conf = make_config_file(unipi)
+            try:
+                print("pushing to: ", unipi.ip)
+                ssh.connect(unipi.ip, username=unipi.username, password=unipi.password, timeout=5)
+                _, _, _ = ssh.exec_command(f"echo \"{conf}\" > configuration.conf")
+                print("pushed successfully")
+            except (paramiko.AuthenticationException, TimeoutError):
+                print("failed: ", unipi.ip)
+                ssh.close()
+                return unipi.ip
+        else:
+            print("NOT pushing to: ", unipi.ip)
     ssh.close()
     return 0
 
@@ -43,15 +46,18 @@ def restart_docker():
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     unipis = database.Unipi.objects.all()
     for unipi in unipis:
-        try:
-            print("restarting: ", unipi.ip)
-            ssh.connect(unipi.ip, username=unipi.username, password=unipi.password, timeout=5)
-            _, _, _ = ssh.exec_command("docker restart fr")
-            print("restarted successfully")
-        except (paramiko.AuthenticationException, TimeoutError):
-            print("restarting failed: ", unipi.ip)
-            ssh.close()
-            return unipi.ip
+        if unipi.restart:
+            try:
+                print("restarting: ", unipi.ip)
+                ssh.connect(unipi.ip, username=unipi.username, password=unipi.password, timeout=5)
+                _, _, _ = ssh.exec_command("docker restart fr")
+                print("restarted successfully")
+            except (paramiko.AuthenticationException, TimeoutError):
+                print("restarting failed: ", unipi.ip)
+                ssh.close()
+                return unipi.ip
+        else:
+            print("NOT restarting: ", unipi.ip)
     ssh.close()
     return 0
 

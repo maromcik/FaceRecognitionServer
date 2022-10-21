@@ -96,6 +96,8 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, person_m
     # print(f"camera id: {camera_id}")
     camera = database.Camera.objects.get(pk=camera_id)
     room = camera.room
+    is_entrance = camera.entrance
+    is_exit = camera.exit
 
     fragments = []
     while True:
@@ -109,6 +111,9 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, person_m
     frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
     write_db, idx, new_idx = process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
 
+    if not write_db or write_db is None:
+        return
+
     last_person = None
     last_camera = None
     if database.Log.objects.all().count() > 0 and idx in person_map:
@@ -119,18 +124,35 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, person_m
     if write_db and last_person is not None and last_camera is not None \
             and camera_id == last_camera and person_map.get(idx, -1) == last_person:
         print(f"skipping {idx}")
-    elif write_db and new_idx:
+    elif write_db and new_idx and is_entrance and not is_exit:
         print(f"new person with id {idx}")
         person = database.Person.objects.create()
         person_map[idx] = person.id
         database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
-    elif write_db and not new_idx:
+    elif write_db and not new_idx and not is_entrance and not is_exit:
         if idx in person_map:
             print(f"logging with id {idx}")
             person = database.Person.objects.get(id=person_map[idx])
             database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
         else:
             print(f"person {idx} already deleted")
+    elif write_db and not new_idx and not is_entrance and is_exit:
+        if idx in person_map:
+            database.Person.objects.get(id=person_map[idx]).delete()
+            del person_map[idx]
+            print(len(shared_descriptors))
+            del shared_descriptors[idx]
+            print(len(shared_descriptors))
+            room.visited += 1
+            room.save()
+            print("person has left the buildings")
+        else:
+            del shared_descriptors[idx]
+            print("person has never entered the building")
+    else:
+        del shared_descriptors[idx]
+
+    print(len(shared_descriptors))
     db.connections.close_all()
     # print("total time: ", time.time() - start)
     exit(0)
@@ -236,6 +258,11 @@ def process_staff_descriptors():
         return -1
     return 0
 
+
+def reset_counters():
+    for room in database.Room.objects.all():
+        room.visited = 0
+        room.save()
 
 class FaceRecognition:
     def __init__(self):

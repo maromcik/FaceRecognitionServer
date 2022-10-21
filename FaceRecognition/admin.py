@@ -17,20 +17,20 @@ from API import FaceRecAPI, PushConf
 def run_push_conf(request):
     ret = PushConf.push()
     if ret == 0:
-        message = "Configuration successfully pushed over SSH!"
+        message = "Configuration successfully pushed over SSH"
         messages.success(request, message)
     else:
-        message = f"Configuration push failed, check device with IP: {ret}!"
+        message = f"Configuration push failed, check device with IP: {ret}"
         messages.error(request, message)
 
 
 def run_restart_docker(request):
     ret = PushConf.restart_docker()
     if ret == 0:
-        message = "All Docker containers successfully restarted over SSH!"
+        message = "All Docker containers successfully restarted over SSH"
         messages.success(request, message)
     else:
-        message = f"Docker restart failed, check device with IP: {ret}!"
+        message = f"Docker restart failed, check device with IP: {ret}"
         messages.error(request, message)
 
 
@@ -96,7 +96,7 @@ class StaffAdmin(admin.ModelAdmin):
     @method_decorator(login_required(login_url='/admin/login'))
     def run_encodings(self, request):
         FaceRecAPI.process_staff_descriptors()
-        self.message_user(request, "Encodings done!")
+        self.message_user(request, "Descriptors for staff created")
         return HttpResponseRedirect("../")
 
     # there's an image of known person in the fields
@@ -109,11 +109,11 @@ class StaffAdmin(admin.ModelAdmin):
 
 
 class CameraAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'stream', 'room']
+    list_display = ['id', 'name', 'stream', 'room', 'entrance', 'exit']
 
 
 class UniPiAdmin(admin.ModelAdmin):
-    list_display = ['name', 'ip', 'server_ip', 'camera1', 'camera2']
+    list_display = ['name', 'ip', 'server_ip', 'camera1', 'camera2', 'push', 'restart']
     change_list_template = "FaceRecognition/change_list2.html"
 
     def get_urls(self):
@@ -137,6 +137,20 @@ class UniPiAdmin(admin.ModelAdmin):
 
 class RoomAdmin(admin.ModelAdmin):
     list_display = ['name', 'visited']
+    change_list_template = "FaceRecognition/change_list3.html"
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path('reset/', self.reset_counters),
+        ]
+        return my_urls + urls
+
+    # add functionality to custom buttons
+    @method_decorator(login_required(login_url='/admin/login'))
+    def reset_counters(self, request):
+        FaceRecAPI.reset_counters()
+        self.message_user(request, "All counters reset")
+        return HttpResponseRedirect("../")
 
 
 admin.site.register(Unipi, UniPiAdmin)
