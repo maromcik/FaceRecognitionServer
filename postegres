@@ -1,0 +1,13 @@
+sudo apt update
+sudo apt install python3-pip python3-dev libpq-dev postgresql postgresql-contrib
+
+sudo -u postgres psql
+
+CREATE DATABASE FaceRecognitionServer;
+CREATE USER django WITH PASSWORD 'M22ercedes!';
+
+ALTER ROLE django SET client_encoding TO 'utf8';
+ALTER ROLE django SET default_transaction_isolation TO 'read committed';
+ALTER ROLE django SET timezone TO 'UTC';
+
+GRANT ALL PRIVILEGES ON DATABASE FaceRecognitionServer TO django;
