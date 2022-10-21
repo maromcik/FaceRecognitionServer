@@ -64,8 +64,7 @@ class Unipi(models.Model):
     server_ip = models.CharField(max_length=255)
     camera1 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera1")
     camera2 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera2", default=None, null=True, blank=True)
-    push = models.BooleanField(default=True)
-    restart = models.BooleanField(default=True)
+    ssh = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name

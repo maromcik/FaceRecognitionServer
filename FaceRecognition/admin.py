@@ -113,7 +113,7 @@ class CameraAdmin(admin.ModelAdmin):
 
 
 class UniPiAdmin(admin.ModelAdmin):
-    list_display = ['name', 'ip', 'server_ip', 'camera1', 'camera2', 'push', 'restart']
+    list_display = ['name', 'ip', 'server_ip', 'camera1', 'camera2', 'ssh']
     change_list_template = "FaceRecognition/change_list2.html"
 
     def get_urls(self):
