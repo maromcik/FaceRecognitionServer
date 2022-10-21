@@ -91,7 +91,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
 
 def process_connection(c, shared_descriptors, shared_staff_descriptors, person_map, staff):
     db.connections.close_all()
-    start = time.time()
+    # start = time.time()
     camera_id = int(c.recv(7).decode())
     # print(f"camera id: {camera_id}")
     camera = database.Camera.objects.get(pk=camera_id)
@@ -132,7 +132,7 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, person_m
         else:
             print(f"person {idx} already deleted")
     db.connections.close_all()
-    print("total time: ", time.time() - start)
+    # print("total time: ", time.time() - start)
     exit(0)
 
 
@@ -185,11 +185,10 @@ def server_listener(s):
     pruner.start()
 
     s.listen(1000)
-    count = 0
+
     while True:
-        count += 1
-        print("image count", count)
         c, addr = s.accept()
+
         # print('Connected to: ' + addr[0] + ':' + str(addr[1]))
         p = mp.Process(target=process_connection, args=(c, shared_descriptors, shared_staff_descriptors, person_map, staff),
                        daemon=True)
