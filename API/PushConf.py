@@ -22,7 +22,7 @@ def push():
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     unipis = database.Unipi.objects.all()
     for unipi in unipis:
-        if unipi.push:
+        if unipi.ssh:
             conf = make_config_file(unipi)
             try:
                 print("pushing to: ", unipi.ip)
@@ -46,7 +46,7 @@ def restart_docker():
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     unipis = database.Unipi.objects.all()
     for unipi in unipis:
-        if unipi.restart:
+        if unipi.ssh:
             try:
                 print("restarting: ", unipi.ip)
                 ssh.connect(unipi.ip, username=unipi.username, password=unipi.password, timeout=5)

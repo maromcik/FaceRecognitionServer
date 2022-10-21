@@ -9,14 +9,14 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import dlib
 import numpy as np
 from django.utils import timezone
-from arcface import ArcFace
+# from arcface import ArcFace
 
 import FaceRecognition.models as database
 import cv2
 from django import db
 
 resnet = dlib.face_recognition_model_v1("models/dlib_face_recognition_resnet_model_v1.dat")
-arcface_model = ArcFace.ArcFace()
+# arcface_model = ArcFace.ArcFace()
 detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor("models/shape_predictor_68_face_landmarks.dat")
 
@@ -27,12 +27,13 @@ def dlib_dsc(face):
     return np.array(resnet.compute_face_descriptor(face))
 
 
-def arcface_dsc(face):
-    return arcface_model.calc_emb(face)
+# def arcface_dsc(face):
+#     return arcface_model.calc_emb(face)
 
 
 models = {"dlib": dlib_dsc,
-          "arcface": arcface_dsc}
+          # "arcface": arcface_dsc
+          }
 
 
 def get_descriptor(face, m):
@@ -48,17 +49,18 @@ def dlib_compare(descriptors, dsc, threshold):
     return False, -1
 
 
-def arcface_compare(descriptors, dsc, threshold):
-    # do for every comparison in the list comparisons
-    for i in range(len(descriptors)):
-        dst = arcface_model.get_distance_embeddings(descriptors[i], dsc)
-        if dst <= threshold:
-            return True, i
-    return False, -1
+# def arcface_compare(descriptors, dsc, threshold):
+#     # do for every comparison in the list comparisons
+#     for i in range(len(descriptors)):
+#         dst = arcface_model.get_distance_embeddings(descriptors[i], dsc)
+#         if dst <= threshold:
+#             return True, i
+#     return False, -1
 
 
 comparison = {"dlib": dlib_compare,
-              "arcface": arcface_compare}
+              # "arcface": arcface_compare
+              }
 
 
 def compare_all(descriptors, dsc, threshold, m):
@@ -264,13 +266,18 @@ def reset_counters():
         room.visited = 0
         room.save()
 
+
+def infer_ip():
+    temp_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    temp_s.connect(("8.8.8.8", 80))
+    port = 5555
+    ip = temp_s.getsockname()[0]
+    return ip, port
+
 class FaceRecognition:
     def __init__(self):
-        temp_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        temp_s.connect(("8.8.8.8", 80))
-        self.port = 5555
-        self.ip = temp_s.getsockname()[0]
-        self.addr = self.ip, self.port
+
+        self.addr = infer_ip()
         print("IP: ", self.addr)
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

@@ -22,11 +22,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-DEBUG = int(os.environ.get("DEBUG", default=0))
+# DEBUG = int(os.environ.get("DEBUG", default=0))
+DEBUG = True
 
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
+# ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
+ALLOWED_HOSTS = ['*']
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
+# SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = '&21vr&audc=3&vg%b1nkc9!#66!c6-uu6mvdf51**eb2%x4!09'
 
 INSTALLED_APPS = [
     'FaceRecognition.apps.FaceRecognitionConfig',
@@ -74,12 +77,12 @@ WSGI_APPLICATION = 'FaceRecognitionServer.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': "FaceRecognitionServer",
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': "facerecognitionserver",
         'USER': 'django',
         'PASSWORD': 'M22ercedes!',
-        'HOST': '192.168.1.12',
-        'PORT': ''
+        'HOST': 'db',
+        'PORT': 5432
     }
 }
 

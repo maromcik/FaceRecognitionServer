@@ -1,10 +1,9 @@
 Django
-mysqlclient
+psycopg2
 numpy
 scipy
 Pillow
 opencv-python
-opencv-contrib-python
 dlib
 django_cleanup
 paramiko
