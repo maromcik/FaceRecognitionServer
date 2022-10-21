@@ -1,16 +1,12 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User
-from django.utils.html import format_html
-
-from FaceRecognition.models import *
 from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.urls import path
-from FaceRecognition import views
 from django.http import HttpResponseRedirect
 from django.contrib import messages
+
+from FaceRecognition.models import *
 from API import FaceRecAPI, PushConf
 
 
@@ -36,6 +32,7 @@ def run_restart_docker(request):
 
 class PersonAdmin(admin.ModelAdmin):
     list_display = ['id']
+    readonly_fields = ['id']
 
     def has_add_permission(self, request, obj=None):
         if request.user.username == "admin":
@@ -55,6 +52,7 @@ class PersonAdmin(admin.ModelAdmin):
 
 class LogAdmin(admin.ModelAdmin):
     list_display = ['person', 'time', 'camera', 'room']
+    readonly_fields = ['person', 'time', 'camera', 'room']
 
     # def get_camera_location(self, obj):
     #     return obj.camera.location
@@ -109,6 +107,7 @@ class StaffAdmin(admin.ModelAdmin):
 
 
 class CameraAdmin(admin.ModelAdmin):
+    readonly_fields = ['id']
     list_display = ['id', 'name', 'stream', 'room', 'entrance', 'exit']
 
 
