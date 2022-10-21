@@ -4,8 +4,7 @@ from psutil import Process
 import os
 
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from API.FaceRecAPI import FaceRecognition
 from FaceRecognition.models import Person

@@ -138,6 +138,7 @@ class UniPiAdmin(admin.ModelAdmin):
 class RoomAdmin(admin.ModelAdmin):
     list_display = ['name', 'visited']
     change_list_template = "FaceRecognition/change_list3.html"
+
     def get_urls(self):
         urls = super().get_urls()
         my_urls = [
