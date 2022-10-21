@@ -20,5 +20,5 @@ services:
     environment:
       - POSTGRES_DB=facerecognitionserver
       - POSTGRES_USER=django
-      - POSTGRES_PASSWORD=M22ercedes!
+      - POSTGRES_PASSWORD=django
       

@@ -78,9 +78,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': "facerecognitionserver",
-        'USER': 'django',
-        'PASSWORD': 'M22ercedes!',
-        'HOST': 'db',
+        'USER': os.environ.get("POSTGRES_USER", default='django'),
+        'PASSWORD': os.environ.get("POSTGRES_PASSWORD", default='django'),
+        'HOST': os.environ.get("POSTGRES_HOST", default='localhost'),
         'PORT': 5432
     }
 }
