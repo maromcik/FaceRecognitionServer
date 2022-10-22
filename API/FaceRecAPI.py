@@ -93,7 +93,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
 
 def process_connection(c, shared_descriptors, shared_staff_descriptors, person_map, staff):
     db.connections.close_all()
-    # start = time.time()
+    start = time.time()
     camera_id = int(c.recv(7).decode())
     # print(f"camera id: {camera_id}")
     camera = database.Camera.objects.get(pk=camera_id)
@@ -152,12 +152,12 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, person_m
             del shared_descriptors[idx]
             print("person has never entered the building")
     else:
-        del shared_descriptors[idx]
+        if 0 <= idx < len(shared_descriptors):
+            del shared_descriptors[idx]
 
-    print(len(shared_descriptors))
+    # print(len(shared_descriptors))
     db.connections.close_all()
-    # print("total time: ", time.time() - start)
-    exit(0)
+    print("total time: ", time.time() - start)
 
 
 def load_staff_descriptors():
@@ -182,8 +182,9 @@ def prune_logs(descriptors, person_map):
                     del descriptors[idx]
                     print(f"person with {idx} deleted")
                 else:
-                    print(f"no such person, deleting {idx}")
-                    del descriptors[idx]
+                    if 0 <= idx < len(descriptors):
+                        print(f"no such person, deleting {idx}")
+                        del descriptors[idx]
         i += 1
 
 
