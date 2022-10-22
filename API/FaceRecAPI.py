@@ -271,14 +271,13 @@ def reset_counters():
 def infer_ip():
     temp_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     temp_s.connect(("8.8.8.8", 80))
-    port = 5555
     ip = temp_s.getsockname()[0]
-    return ip, port
+    return ip
 
 class FaceRecognition:
     def __init__(self):
-
-        self.addr = infer_ip()
+        port = 5555
+        self.addr = infer_ip(), port
         print("IP: ", self.addr)
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

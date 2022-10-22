@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from API import FaceRecAPI
 
@@ -62,7 +64,7 @@ class Unipi(models.Model):
     ip = models.CharField(max_length=255)
     username = models.CharField(max_length=255, default="pi")
     password = models.CharField(max_length=255, default="raspberry")
-    server_ip = models.CharField(max_length=255, default=FaceRecAPI.infer_ip()[0])
+    server_ip = models.CharField(max_length=255, default=os.environ.get("SERVER_IP", default=FaceRecAPI.infer_ip()))
     camera1 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera1")
     camera2 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera2", default=None, null=True, blank=True)
     ssh = models.BooleanField(default=True)
