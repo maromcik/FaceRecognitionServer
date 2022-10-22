@@ -69,7 +69,6 @@ def compare_all(descriptors, dsc, threshold, m):
 
 def process_image(descriptors, staff_descriptors, staff, img):
     if len(detector(img, 1)) != 1:
-        print("Invalid face in picture")
         return None, None, None
     dsc = get_descriptor(img, model)
     if staff:
@@ -152,12 +151,12 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, person_m
             del shared_descriptors[idx]
             print("person has never entered the building")
     else:
-        if 0 <= idx < len(shared_descriptors):
+        if 0 <= idx < len(shared_descriptors) and idx not in person_map:
             del shared_descriptors[idx]
 
     # print(len(shared_descriptors))
     db.connections.close_all()
-    print("total time: ", time.time() - start)
+    # print("total time: ", time.time() - start)
 
 
 def load_staff_descriptors():
