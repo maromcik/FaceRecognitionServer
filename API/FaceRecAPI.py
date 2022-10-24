@@ -275,7 +275,7 @@ def infer_ip():
 
 class FaceRecognition:
     def __init__(self):
-        port = 5555
+        port = os.environ.get("SERVER_PORT", default=5555)
         self.addr = infer_ip(), port
         print("IP: ", self.addr)
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
