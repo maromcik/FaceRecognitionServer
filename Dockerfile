@@ -12,7 +12,6 @@ RUN apt-get install -y apt-utils cmake git python3-pip python3-dev libpq-dev pos
 RUN pip install --upgrade pip
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
+RUN git clone https://github.com/davisking/dlib.git && cd dlib && python3 setup.py install
 
 COPY . .
-RUN cd API/dlib && python3 setup.py install
-RUN ls
