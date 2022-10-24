@@ -70,9 +70,7 @@ def compare_all(descriptors, dsc, threshold, m):
 def process_image(descriptors, staff_descriptors, staff, img):
     if len(detector(img, 1)) != 1:
         return None, None, None
-    s = time.time()
     dsc = get_descriptor(img, model)
-    print("descriptor time:", time.time() - s)
     if staff:
         exists, idx = compare_all(staff_descriptors, dsc, 0.58, model)
         if exists:
@@ -94,7 +92,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
 
 def process_connection(c, shared_descriptors, shared_staff_descriptors, person_map, staff):
     db.connections.close_all()
-    # start = time.time()
+    start = time.time()
     camera_id = int(c.recv(7).decode())
     # print(f"camera id: {camera_id}")
     camera = database.Camera.objects.get(pk=camera_id)
@@ -156,9 +154,8 @@ def process_connection(c, shared_descriptors, shared_staff_descriptors, person_m
         if 0 <= idx < len(shared_descriptors) and idx not in person_map:
             del shared_descriptors[idx]
 
-    # print(len(shared_descriptors))
     db.connections.close_all()
-    # print("total time: ", time.time() - start)
+    print("total time: ", time.time() - start)
 
 
 def load_staff_descriptors():
