@@ -14,4 +14,5 @@ COPY ./requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY . .
+RUN cd dlib && python3 setup.py install
 RUN ls

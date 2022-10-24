@@ -70,7 +70,9 @@ def compare_all(descriptors, dsc, threshold, m):
 def process_image(descriptors, staff_descriptors, staff, img):
     if len(detector(img, 1)) != 1:
         return None, None, None
+    s = time.time()
     dsc = get_descriptor(img, model)
+    print("descriptor time:", time.time() - s)
     if staff:
         exists, idx = compare_all(staff_descriptors, dsc, 0.58, model)
         if exists:
@@ -92,7 +94,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
 
 def process_connection(c, shared_descriptors, shared_staff_descriptors, person_map, staff):
     db.connections.close_all()
-    start = time.time()
+    # start = time.time()
     camera_id = int(c.recv(7).decode())
     # print(f"camera id: {camera_id}")
     camera = database.Camera.objects.get(pk=camera_id)
@@ -275,7 +277,7 @@ def infer_ip():
 
 class FaceRecognition:
     def __init__(self):
-        port = os.environ.get("SERVER_PORT", default=5555)
+        port = int(os.environ.get("SERVER_PORT", default=5555))
         self.addr = infer_ip(), port
         print("IP: ", self.addr)
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

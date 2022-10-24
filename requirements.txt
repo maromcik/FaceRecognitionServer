@@ -4,7 +4,6 @@ numpy
 scipy
 Pillow
 opencv-python
-dlib
 django_cleanup
 paramiko
 psutil
