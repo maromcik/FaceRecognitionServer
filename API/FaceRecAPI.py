@@ -1,9 +1,10 @@
-import itertools
 import os
 import pickle
 import socket
+import threading as mt
 import multiprocessing as mp
 import time
+
 
 from apscheduler.schedulers.background import BackgroundScheduler
 import dlib
@@ -71,6 +72,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
     if len(detector(img, 1)) != 1:
         return None, None, None
     dsc = get_descriptor(img, model)
+
     if staff:
         exists, idx = compare_all(staff_descriptors, dsc, 0.58, model)
         if exists:
@@ -90,72 +92,60 @@ def process_image(descriptors, staff_descriptors, staff, img):
     return True, len(descriptors) - 1, True
 
 
-def process_connection(c, shared_descriptors, shared_staff_descriptors, person_map, staff):
+def process(camera_frame, shared_descriptors, shared_staff_descriptors, person_map, staff):
     db.connections.close_all()
-    start = time.time()
-    camera_id = int(c.recv(7).decode())
-    # print(f"camera id: {camera_id}")
-    camera = database.Camera.objects.get(pk=camera_id)
-    room = camera.room
-    is_entrance = camera.entrance
-    is_exit = camera.exit
-
-    fragments = []
     while True:
-        chunk = c.recv(4096)
-        if not chunk:
-            break
-        fragments.append(chunk)
+        camera_id, frame = camera_frame.get(True)
+        start = time.time()
+        camera = database.Camera.objects.get(pk=camera_id)
+        room = camera.room
+        is_entrance = camera.entrance
+        is_exit = camera.exit
 
-    c.close()
-    img = np.asarray(bytearray(b''.join(fragments)), dtype="uint8")
-    frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
-    write_db, idx, new_idx = process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
+        write_db, idx, new_idx = process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
 
-    if not write_db or write_db is None:
-        return
+        if not write_db or write_db is None:
+            continue
 
-    last_person = None
-    last_camera = None
-    if database.Log.objects.all().count() > 0 and idx in person_map:
-        last_log = database.Log.objects.filter(person__id=person_map[idx]).latest('time')
-        last_person = int(last_log.person.id)
-        last_camera = int(last_log.camera.id)
+        last_person = None
+        last_camera = None
+        if database.Log.objects.all().count() > 0 and idx in person_map:
+            last_log = database.Log.objects.filter(person__id=person_map[idx]).latest('time')
+            last_person = int(last_log.person.id)
+            last_camera = int(last_log.camera.id)
 
-    if write_db and last_person is not None and last_camera is not None \
-            and camera_id == last_camera and person_map.get(idx, -1) == last_person:
-        print(f"skipping {idx}")
-    elif write_db and new_idx and is_entrance and not is_exit:
-        print(f"new person with id {idx}")
-        person = database.Person.objects.create()
-        person_map[idx] = person.id
-        database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
-    elif write_db and not new_idx and not is_entrance and not is_exit:
-        if idx in person_map:
-            print(f"logging with id {idx}")
-            person = database.Person.objects.get(id=person_map[idx])
+        if write_db and last_person is not None and last_camera is not None \
+                and camera_id == last_camera and person_map.get(idx, -1) == last_person:
+            print(f"skipping {idx}")
+        elif write_db and new_idx and is_entrance and not is_exit:
+            print(f"new person with id {idx}")
+            person = database.Person.objects.create()
+            person_map[idx] = person.id
             database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
+        elif write_db and not new_idx and not is_entrance and not is_exit:
+            if idx in person_map:
+                print(f"logging with id {idx}")
+                person = database.Person.objects.get(id=person_map[idx])
+                database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
+            else:
+                print(f"person {idx} already deleted")
+        elif write_db and not new_idx and not is_entrance and is_exit:
+            if idx in person_map:
+                database.Person.objects.get(id=person_map[idx]).delete()
+                del person_map[idx]
+                print(len(shared_descriptors))
+                del shared_descriptors[idx]
+                print(len(shared_descriptors))
+                room.visited += 1
+                room.save()
+                print("person has left the buildings")
+            else:
+                del shared_descriptors[idx]
+                print("person has never entered the building")
         else:
-            print(f"person {idx} already deleted")
-    elif write_db and not new_idx and not is_entrance and is_exit:
-        if idx in person_map:
-            database.Person.objects.get(id=person_map[idx]).delete()
-            del person_map[idx]
-            print(len(shared_descriptors))
-            del shared_descriptors[idx]
-            print(len(shared_descriptors))
-            room.visited += 1
-            room.save()
-            print("person has left the buildings")
-        else:
-            del shared_descriptors[idx]
-            print("person has never entered the building")
-    else:
-        if 0 <= idx < len(shared_descriptors) and idx not in person_map:
-            del shared_descriptors[idx]
-
-    db.connections.close_all()
-    print("total time: ", time.time() - start)
+            if 0 <= idx < len(shared_descriptors) and idx not in person_map:
+                del shared_descriptors[idx]
+        print("total time: ", time.time() - start)
 
 
 def load_staff_descriptors():
@@ -171,7 +161,7 @@ def prune_logs(descriptors, person_map):
     i = 0
     while i < len(descriptors):
         comparisons = np.linalg.norm(descriptors - descriptors[i], axis=1)
-        print(comparisons)
+        # print(comparisons)
         for idx in range(len(comparisons) - 1, -1, -1):
             if 0.01 <= comparisons[idx] <= 0.62:
                 if idx in person_map:
@@ -186,11 +176,30 @@ def prune_logs(descriptors, person_map):
         i += 1
 
 
+def handle_connection(s, frames):
+    s.listen(1000)
+    while True:
+        c, addr = s.accept()
+        camera_id = int(c.recv(7).decode())
+        fragments = []
+        while True:
+            chunk = c.recv(4096)
+            if not chunk:
+                break
+            fragments.append(chunk)
+        c.close()
+        img = np.asarray(bytearray(b''.join(fragments)), dtype="uint8")
+        frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
+        frames.put((camera_id, frame))
+        print(frames.qsize())
+
+
 def server_listener(s):
     manager = mp.Manager()
     shared_descriptors = manager.list()
     shared_staff_descriptors = manager.list()
     person_map = manager.dict()
+
     staff = True
     try:
         shared_staff_descriptors[:] = load_staff_descriptors()[:]
@@ -206,16 +215,14 @@ def server_listener(s):
     pruner = BackgroundScheduler()
     pruner.add_job(prune_logs, 'interval', seconds=30, args=(shared_descriptors, person_map))
     pruner.start()
-
-    s.listen(1000)
-
-    while True:
-        c, addr = s.accept()
-
-        # print('Connected to: ' + addr[0] + ':' + str(addr[1]))
-        p = mp.Process(target=process_connection, args=(c, shared_descriptors, shared_staff_descriptors, person_map, staff),
+    frame_queue = mp.Queue()
+    pool = mp.Pool(mp.cpu_count(), process, (frame_queue, shared_descriptors, shared_staff_descriptors, person_map, staff,),)
+    p1 = mp.Process(target=handle_connection, args=(s, frame_queue),
                        daemon=True)
-        p.start()
+    p1.start()
+    p1.join()
+    pool.join()
+
 
 def load_image(filename):
     img = cv2.imread(filename)
