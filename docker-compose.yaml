@@ -16,7 +16,7 @@ services:
   db:
     image: postgres:latest
     container_name: facerecserver_db
-    command: bash -c "postgres -c 'max_connections=2000' && postgres -c 'shared_buffers=1024MB'"
+    command: postgres -c 'max_connections=2000'
     volumes:
       - ./data/db:/var/lib/postgresql/data
     environment:
