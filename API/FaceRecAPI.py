@@ -50,12 +50,13 @@ def dlib_compare(descriptors, dsc, threshold):
 
 
 # def arcface_compare(descriptors, dsc, threshold):
-#     # do for every comparison in the list comparisons
-#     for i in range(len(descriptors)):
-#         dst = arcface_model.get_distance_embeddings(descriptors[i], dsc)
-#         if dst <= threshold:
-#             return True, i
-#     return False, -1
+    # do for every comparison in the list comparisons
+    # for i in range(len(descriptors)):
+    #     dst = arcface_model.get_distance_embeddings(descriptors[i], dsc)
+    #     print(dst)
+    #     if dst <= threshold:
+    #         return True, i
+    # return False, -1
 
 
 comparison = {"dlib": dlib_compare,
@@ -69,10 +70,11 @@ def compare_all(descriptors, dsc, threshold, m):
 
 def process_image(descriptors, staff_descriptors, staff, img):
     if len(detector(img, 1)) != 1:
+        print("no face")
         return None, None, None
     dsc = get_descriptor(img, model)
     if staff:
-        exists, idx = compare_all(staff_descriptors, dsc, 0.58, model)
+        exists, idx = compare_all(staff_descriptors, dsc, 0.6, model)
         if exists:
             # this person is staff
             print("person is staff")
@@ -81,7 +83,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
         descriptors.append(dsc)
         # this is a new person and shared descriptors are empty
         return True, 0, True
-    exists, idx = compare_all(descriptors, dsc, 0.55, model)
+    exists, idx = compare_all(descriptors, dsc, 0.56, model)
     if exists:
         # this is an existing person
         return True, idx, False
@@ -94,7 +96,7 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
     db.connections.close_all()
     while True:
         camera_id, frame = frame_queue.get(True)
-        print("q:", frame_queue.qsize())
+        # print("q:", frame_queue.qsize())
         start = time.time()
         camera = database.Camera.objects.get(pk=camera_id)
         room = camera.room
@@ -104,6 +106,7 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
         write_db, idx, new_idx = process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
 
         if not write_db or write_db is None:
+            print("total time: ", time.time() - start)
             continue
 
         last_person = None
@@ -113,15 +116,18 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
             last_person = int(last_log.person.id)
             last_camera = int(last_log.camera.id)
 
+        # and is_entrance and not is_exit
+        # and not is_entrance and not is_exit
+
         if write_db and last_person is not None and last_camera is not None \
                 and camera_id == last_camera and person_map.get(idx, -1) == last_person:
             print(f"skipping {idx}")
-        elif write_db and new_idx and is_entrance and not is_exit:
+        elif write_db and new_idx:
             print(f"new person with id {idx}")
             person = database.Person.objects.create()
             person_map[idx] = person.id
             database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
-        elif write_db and not new_idx and not is_entrance and not is_exit:
+        elif write_db and not new_idx:
             if idx in person_map:
                 print(f"logging with id {idx}")
                 person = database.Person.objects.get(id=person_map[idx])
@@ -132,9 +138,7 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
             if idx in person_map:
                 database.Person.objects.get(id=person_map[idx]).delete()
                 del person_map[idx]
-                print(len(shared_descriptors))
                 del shared_descriptors[idx]
-                print(len(shared_descriptors))
                 room.visited += 1
                 room.save()
                 print("person has left the buildings")
@@ -144,6 +148,7 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
         else:
             if 0 <= idx < len(shared_descriptors) and idx not in person_map:
                 del shared_descriptors[idx]
+                print("DELETE")
         print("total time: ", time.time() - start)
 
 
@@ -175,13 +180,6 @@ def prune_logs(descriptors, person_map):
         i += 1
 
 
-def infer_ip():
-    temp_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    temp_s.connect(("8.8.8.8", 80))
-    ip = temp_s.getsockname()[0]
-    return ip
-
-
 def handle_connection(c, frame_queue):
     camera_id = int(c.recv(7).decode())
     fragments = []
@@ -195,6 +193,13 @@ def handle_connection(c, frame_queue):
     frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
     frame_queue.put((camera_id, frame))
     return
+
+
+def infer_ip():
+    temp_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    temp_s.connect(("8.8.8.8", 80))
+    ip = temp_s.getsockname()[0]
+    return ip
 
 
 def server_listener():
