@@ -1,12 +1,12 @@
 import os
 import pickle
 import socket
-import threading as mt
 import multiprocessing as mp
+import threading as mt
 import time
-
-
 from apscheduler.schedulers.background import BackgroundScheduler
+
+
 import dlib
 import numpy as np
 from django.utils import timezone
@@ -72,7 +72,6 @@ def process_image(descriptors, staff_descriptors, staff, img):
     if len(detector(img, 1)) != 1:
         return None, None, None
     dsc = get_descriptor(img, model)
-
     if staff:
         exists, idx = compare_all(staff_descriptors, dsc, 0.58, model)
         if exists:
@@ -176,25 +175,30 @@ def prune_logs(descriptors, person_map):
         i += 1
 
 
-def handle_connection(s, frames):
-    s.listen(1000)
+def infer_ip():
+    temp_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    temp_s.connect(("8.8.8.8", 80))
+    ip = temp_s.getsockname()[0]
+    return ip
+
+def handle_connection(c, frame_queue):
+
+    camera_id = int(c.recv(7).decode())
+    fragments = []
     while True:
-        c, addr = s.accept()
-        camera_id = int(c.recv(7).decode())
-        fragments = []
-        while True:
-            chunk = c.recv(4096)
-            if not chunk:
-                break
-            fragments.append(chunk)
-        c.close()
-        img = np.asarray(bytearray(b''.join(fragments)), dtype="uint8")
-        frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
-        frames.put((camera_id, frame))
-        print(frames.qsize())
+        chunk = c.recv(4096)
+        if not chunk:
+            break
+        fragments.append(chunk)
+    c.close()
+    img = np.asarray(bytearray(b''.join(fragments)), dtype="uint8")
+    frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
+    frame_queue.put((camera_id, frame))
+    print(frame_queue.qsize())
+    return
 
 
-def server_listener(s):
+def server_listener():
     manager = mp.Manager()
     shared_descriptors = manager.list()
     shared_staff_descriptors = manager.list()
@@ -216,12 +220,21 @@ def server_listener(s):
     pruner.add_job(prune_logs, 'interval', seconds=30, args=(shared_descriptors, person_map))
     pruner.start()
     frame_queue = mp.Queue()
-    pool = mp.Pool(mp.cpu_count(), process, (frame_queue, shared_descriptors, shared_staff_descriptors, person_map, staff,),)
-    p1 = mp.Process(target=handle_connection, args=(s, frame_queue),
-                       daemon=True)
-    p1.start()
-    p1.join()
-    pool.join()
+    pool = mp.Pool(mp.cpu_count(), process, (frame_queue, shared_descriptors, shared_staff_descriptors, person_map, staff,), )
+
+    port = int(os.environ.get("SERVER_PORT", default=5555))
+    addr = infer_ip(), port
+    print("IP: ", addr)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind(addr)
+    s.listen(1000)
+    while True:
+        c, addr = s.accept()
+        p1 = mt.Thread(target=handle_connection, args=(c, frame_queue,),daemon=True)
+        p1.start()
+
+
 
 
 def load_image(filename):
@@ -273,29 +286,7 @@ def reset_counters():
         room.save()
 
 
-def infer_ip():
-    temp_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    temp_s.connect(("8.8.8.8", 80))
-    ip = temp_s.getsockname()[0]
-    return ip
-
-class FaceRecognition:
-    def __init__(self):
-        port = int(os.environ.get("SERVER_PORT", default=5555))
-        self.addr = infer_ip(), port
-        print("IP: ", self.addr)
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-    # def __del__(self):
-    #     for child in active_children():
-    #         child.terminate()
-    #     print("All children killed")
-    #     self.s.close()
-    #     print("Server closed")
-
-    def run_server(self):
-        self.s.bind(self.addr)
-
-        p = mp.Process(target=server_listener, args=(self.s,))
-        p.start()
+def run_server():
+    p = mp.Process(target=server_listener)
+    p.start()
+    return p

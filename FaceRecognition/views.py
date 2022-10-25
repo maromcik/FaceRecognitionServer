@@ -6,7 +6,7 @@ import os
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from API.FaceRecAPI import FaceRecognition
+from API import FaceRecAPI
 from FaceRecognition.models import Person
 
 # is running
@@ -46,8 +46,8 @@ def restart_server(request):
 def start():
     global RUNNING
     if not RUNNING:
-        fr = FaceRecognition()
-        fr.run_server()
+        p = FaceRecAPI.run_server()
+        print("start", p.pid)
         RUNNING = True
         return 0
     return 1
@@ -58,6 +58,7 @@ def stop():
     if RUNNING:
         parent = Process(os.getpid())
         for child in parent.children(recursive=True):
+            print("child: ", child.pid)
             child.kill()
         RUNNING = False
         print("All children killed")
