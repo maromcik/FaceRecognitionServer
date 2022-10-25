@@ -122,12 +122,12 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
         if write_db and last_person is not None and last_camera is not None \
                 and camera_id == last_camera and person_map.get(idx, -1) == last_person:
             print(f"skipping {idx}")
-        elif write_db and new_idx:
+        elif write_db and new_idx and is_entrance and not is_exit:
             print(f"new person with id {idx}")
             person = database.Person.objects.create()
             person_map[idx] = person.id
             database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
-        elif write_db and not new_idx:
+        elif write_db and not new_idx and not is_entrance and not is_exit:
             if idx in person_map:
                 print(f"logging with id {idx}")
                 person = database.Person.objects.get(id=person_map[idx])
