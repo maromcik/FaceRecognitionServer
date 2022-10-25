@@ -6,7 +6,6 @@ import threading as mt
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
 
-
 import dlib
 import numpy as np
 from django.utils import timezone
@@ -91,10 +90,11 @@ def process_image(descriptors, staff_descriptors, staff, img):
     return True, len(descriptors) - 1, True
 
 
-def process(camera_frame, shared_descriptors, shared_staff_descriptors, person_map, staff):
+def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_map, staff):
     db.connections.close_all()
     while True:
-        camera_id, frame = camera_frame.get(True)
+        camera_id, frame = frame_queue.get(True)
+        print("q:", frame_queue.qsize())
         start = time.time()
         camera = database.Camera.objects.get(pk=camera_id)
         room = camera.room
@@ -181,8 +181,8 @@ def infer_ip():
     ip = temp_s.getsockname()[0]
     return ip
 
-def handle_connection(c, frame_queue):
 
+def handle_connection(c, frame_queue):
     camera_id = int(c.recv(7).decode())
     fragments = []
     while True:
@@ -194,7 +194,6 @@ def handle_connection(c, frame_queue):
     img = np.asarray(bytearray(b''.join(fragments)), dtype="uint8")
     frame = cv2.imdecode(img, cv2.IMREAD_COLOR)
     frame_queue.put((camera_id, frame))
-    print(frame_queue.qsize())
     return
 
 
@@ -203,7 +202,6 @@ def server_listener():
     shared_descriptors = manager.list()
     shared_staff_descriptors = manager.list()
     person_map = manager.dict()
-
     staff = True
     try:
         shared_staff_descriptors[:] = load_staff_descriptors()[:]
@@ -220,7 +218,8 @@ def server_listener():
     pruner.add_job(prune_logs, 'interval', seconds=30, args=(shared_descriptors, person_map))
     pruner.start()
     frame_queue = mp.Queue()
-    pool = mp.Pool(mp.cpu_count(), process, (frame_queue, shared_descriptors, shared_staff_descriptors, person_map, staff,), )
+    pool = mp.Pool(mp.cpu_count() - 1, process,
+                   (frame_queue, shared_descriptors, shared_staff_descriptors, person_map, staff,), )
 
     port = int(os.environ.get("SERVER_PORT", default=5555))
     addr = infer_ip(), port
@@ -231,10 +230,14 @@ def server_listener():
     s.listen(1000)
     while True:
         c, addr = s.accept()
-        p1 = mt.Thread(target=handle_connection, args=(c, frame_queue,),daemon=True)
-        p1.start()
+        t = mt.Thread(target=handle_connection, args=(c, frame_queue,), daemon=True)
+        t.start()
 
 
+def run_server():
+    p = mp.Process(target=server_listener)
+    p.start()
+    return p
 
 
 def load_image(filename):
@@ -284,9 +287,3 @@ def reset_counters():
     for room in database.Room.objects.all():
         room.visited = 0
         room.save()
-
-
-def run_server():
-    p = mp.Process(target=server_listener)
-    p.start()
-    return p
