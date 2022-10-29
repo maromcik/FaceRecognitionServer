@@ -1,8 +1,7 @@
 version: "3.9"
 services:
   app:
-    image: localhost:5000/face_rec_server
-#    image: 192.168.1.12:5000/face_rec_server
+    image: 192.168.1.12:5000/face_rec_server
 #    build: .
     container_name: facerecserver
     command: python3 manage.py runserver 0.0.0.0:8000
@@ -17,8 +16,7 @@ services:
       - db
   db:
 #    image: postgres:latest
-#    image: 192.168.1.12:5000/postgres
-    image: localhost:5000/postgres
+    image: 192.168.1.12:5000/postgres
     container_name: facerecserver_db
     command: postgres -c 'max_connections=2000'
     volumes:
