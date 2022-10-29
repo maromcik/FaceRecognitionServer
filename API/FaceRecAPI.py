@@ -207,7 +207,7 @@ def server_listener():
     shared_descriptors = manager.list()
     shared_staff_descriptors = manager.list()
     person_map = manager.dict()
-    staff = True
+    staff = False
     try:
         shared_staff_descriptors[:] = load_staff_descriptors()[:]
     except FileNotFoundError:
@@ -215,8 +215,9 @@ def server_listener():
         ret = process_staff_descriptors()
         if ret == 0:
             shared_staff_descriptors[:] = load_staff_descriptors()[:]
+            if len(shared_staff_descriptors) > 0:
+                staff = True
         else:
-            staff = False
             print("Staff file will not be used:")
 
     pruner = BackgroundScheduler()
