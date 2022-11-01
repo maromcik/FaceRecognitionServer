@@ -252,9 +252,9 @@ def load_image(filename):
     return img
 
 
-def process_staff_descriptors_worker(name, file):
+def process_staff_descriptors_worker(name, image):
     dir_path = os.path.join(os.path.dirname(__file__), "..") + "/media/"
-    full_path = dir_path + file
+    full_path = dir_path + image
     print("processing: ", full_path)
     img = load_image(full_path)
     face = detector(img, 1)
