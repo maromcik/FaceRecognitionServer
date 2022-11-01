@@ -58,7 +58,7 @@ class Camera(models.Model):
         return self.name
 
 
-class Unipi(models.Model):
+class Client(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     ip = models.CharField(max_length=255)
@@ -76,7 +76,7 @@ class Unipi(models.Model):
         return self.name
 
     class Meta:
-        verbose_name_plural = "Unipis"
+        verbose_name_plural = "Clients"
 
 
 class Log(models.Model):

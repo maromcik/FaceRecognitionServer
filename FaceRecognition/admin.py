@@ -111,7 +111,7 @@ class CameraAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'stream', 'room', 'entrance', 'exit']
 
 
-class UniPiAdmin(admin.ModelAdmin):
+class ClientAdmin(admin.ModelAdmin):
     list_display = ['name', 'ip', 'server_ip', 'camera1', 'camera2', 'ssh']
     change_list_template = "FaceRecognition/change_list2.html"
 
@@ -153,7 +153,7 @@ class RoomAdmin(admin.ModelAdmin):
         return HttpResponseRedirect("../")
 
 
-admin.site.register(Unipi, UniPiAdmin)
+admin.site.register(Client, ClientAdmin)
 admin.site.register(Room, RoomAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Staff, StaffAdmin)
