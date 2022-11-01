@@ -42,6 +42,8 @@ def get_descriptor(face, m):
 
 def dlib_compare(descriptors, dsc, threshold):
     # do for every comparison in the list comparisons
+    if len(descriptors) == 0:
+        return False, -1
     comparisons = np.linalg.norm(descriptors - dsc, axis=1)
     for i in range(len(comparisons)):
         if comparisons[i] <= threshold:
@@ -143,8 +145,9 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
                 room.save()
                 print("person has left the buildings")
             else:
-                del shared_descriptors[idx]
-                print("person has never entered the building")
+                if 0 <= idx < len(shared_descriptors) and idx not in person_map:
+                    del shared_descriptors[idx]
+                    print("person has never entered the building")
         else:
             if 0 <= idx < len(shared_descriptors) and idx not in person_map:
                 del shared_descriptors[idx]
