@@ -98,7 +98,7 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
     db.connections.close_all()
     while True:
         camera_id, frame = frame_queue.get(True)
-        print("q:", frame_queue.qsize())
+        # print("q:", frame_queue.qsize())
         start = time.time()
         camera = database.Camera.objects.get(pk=camera_id)
         room = camera.room
