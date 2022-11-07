@@ -108,7 +108,7 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
         write_db, idx, new_idx = process_image(shared_descriptors, shared_staff_descriptors, staff, frame)
 
         if not write_db or write_db is None:
-            print("total time: ", time.time() - start)
+            # print("total time: ", time.time() - start)
             continue
 
         last_person = None
@@ -128,14 +128,14 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
             print(f"new person with id {idx}")
             person = database.Person.objects.create()
             person_map[idx] = person.id
-            database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
+            database.Log.objects.create(person=person, camera=camera, time=timezone.now())
         elif write_db and not new_idx and not is_entrance and not is_exit:
             if idx in person_map:
                 print(f"logging with id {idx}")
                 person = database.Person.objects.get(id=person_map[idx])
-                database.Log.objects.create(person=person, camera=camera, room=room, time=timezone.now())
+                database.Log.objects.create(person=person, camera=camera, time=timezone.now())
             else:
-                print(f"person {idx} already deleted")
+                print(f"person {idx} has not entered")
         elif write_db and not new_idx and not is_entrance and is_exit:
             if idx in person_map:
                 database.Person.objects.get(id=person_map[idx]).delete()
@@ -151,8 +151,8 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
         else:
             if 0 <= idx < len(shared_descriptors) and idx not in person_map:
                 del shared_descriptors[idx]
-                print("DELETE")
-        print("total time: ", time.time() - start)
+                # print("DELETE")
+        # print("total time: ", time.time() - start)
 
 
 def load_staff_descriptors():
@@ -178,7 +178,7 @@ def prune_logs(descriptors, person_map):
                     print(f"person with {idx} deleted")
                 else:
                     if 0 <= idx < len(descriptors):
-                        print(f"no such person, deleting {idx}")
+                        # print(f"no such person, deleting {idx}")
                         del descriptors[idx]
         i += 1
 

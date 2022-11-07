@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin import display
 from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -51,8 +52,12 @@ class PersonAdmin(admin.ModelAdmin):
 
 
 class LogAdmin(admin.ModelAdmin):
-    list_display = ['person', 'time', 'camera', 'room']
-    readonly_fields = ['person', 'time', 'camera', 'room']
+    list_display = ['person', 'time', 'camera', 'get_room']
+    readonly_fields = ['person', 'time', 'camera']
+
+    @display(ordering='camera__room', description='Room')
+    def get_room(self, obj):
+        return obj.camera.room
 
     # def get_camera_location(self, obj):
     #     return obj.camera.location
