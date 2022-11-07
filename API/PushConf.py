@@ -29,7 +29,7 @@ def push():
                 ssh.connect(client.ip, username=client.username, password=client.password, timeout=5)
                 _, _, _ = ssh.exec_command(f"echo \"{conf}\" > configuration.conf")
                 print("pushed successfully")
-            except (paramiko.AuthenticationException, TimeoutError):
+            except (paramiko.AuthenticationException, TimeoutError, paramiko.ssh_exception.NoValidConnectionsError, paramiko.ssh_exception.AuthenticationException):
                 print("failed: ", client.ip)
                 ssh.close()
                 return client.ip
@@ -52,7 +52,7 @@ def restart_docker():
                 ssh.connect(client.ip, username=client.username, password=client.password, timeout=5)
                 _, _, _ = ssh.exec_command("docker restart fr")
                 print("restarted successfully")
-            except (paramiko.AuthenticationException, TimeoutError):
+            except (paramiko.AuthenticationException, TimeoutError, paramiko.ssh_exception.NoValidConnectionsError, paramiko.ssh_exception.AuthenticationException):
                 print("restarting failed: ", client.ip)
                 ssh.close()
                 return client.ip
