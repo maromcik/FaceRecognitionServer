@@ -53,6 +53,9 @@ def start():
     return 1
 
 
+"""Kills all the spawned processes"""
+
+
 def stop():
     global RUNNING
     if RUNNING:
@@ -66,4 +69,3 @@ def stop():
         print("All persons deleted")
         return 0
     return 1
-

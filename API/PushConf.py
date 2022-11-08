@@ -1,6 +1,8 @@
 import paramiko
 import FaceRecognition.models as database
 
+"""Crates a configuration string in a predetermined format."""
+
 
 def make_config_file(client):
     # cameras = database.Camera.objects.filter(client=client)
@@ -13,6 +15,10 @@ def make_config_file(client):
     if client.camera2 is not None:
         conf += "{:07d}".format(client.camera2.id) + ';' + client.camera2.stream + '\n'
     return conf
+
+
+"""The following two functions connect to each client in the database that is supposed to be access, 
+and echo the configuration or restart the Docker container"""
 
 
 def push():
@@ -29,7 +35,8 @@ def push():
                 ssh.connect(client.ip, username=client.username, password=client.password, timeout=5)
                 _, _, _ = ssh.exec_command(f"echo \"{conf}\" > configuration.conf")
                 print("pushed successfully")
-            except (paramiko.AuthenticationException, TimeoutError, paramiko.ssh_exception.NoValidConnectionsError, paramiko.ssh_exception.AuthenticationException):
+            except (paramiko.AuthenticationException, TimeoutError, paramiko.ssh_exception.NoValidConnectionsError,
+                    paramiko.ssh_exception.AuthenticationException):
                 print("failed: ", client.ip)
                 ssh.close()
                 return client.ip
@@ -52,7 +59,8 @@ def restart_docker():
                 ssh.connect(client.ip, username=client.username, password=client.password, timeout=5)
                 _, _, _ = ssh.exec_command("docker restart fr")
                 print("restarted successfully")
-            except (paramiko.AuthenticationException, TimeoutError, paramiko.ssh_exception.NoValidConnectionsError, paramiko.ssh_exception.AuthenticationException):
+            except (paramiko.AuthenticationException, TimeoutError, paramiko.ssh_exception.NoValidConnectionsError,
+                    paramiko.ssh_exception.AuthenticationException):
                 print("restarting failed: ", client.ip)
                 ssh.close()
                 return client.ip
@@ -60,4 +68,3 @@ def restart_docker():
             print("NOT restarting: ", client.ip)
     ssh.close()
     return 0
-
