@@ -1,18 +1,24 @@
+"""
+Functions in this file handle face recognition, processing of the staff descriptors,
+receiving frames from clients and the logic of logging people.
+"""
+
 import os
 import pickle
 import socket
+import time
+import numpy as np
 import multiprocessing as mp
 import threading as mt
-import time
+
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import dlib
-import numpy as np
-from django.utils import timezone
+import cv2
 # from arcface import ArcFace
 
+from django.utils import timezone
 import FaceRecognition.models as database
-import cv2
 from django import db
 
 resnet = dlib.face_recognition_model_v1("models/dlib_face_recognition_resnet_model_v1.dat")
@@ -52,13 +58,13 @@ def dlib_compare(descriptors, dsc, threshold):
 
 
 # def arcface_compare(descriptors, dsc, threshold):
-    # do for every comparison in the list comparisons
-    # for i in range(len(descriptors)):
-    #     dst = arcface_model.get_distance_embeddings(descriptors[i], dsc)
-    #     print(dst)
-    #     if dst <= threshold:
-    #         return True, i
-    # return False, -1
+# do for every comparison in the list comparisons
+# for i in range(len(descriptors)):
+#     dst = arcface_model.get_distance_embeddings(descriptors[i], dsc)
+#     print(dst)
+#     if dst <= threshold:
+#         return True, i
+# return False, -1
 
 
 comparison = {"dlib": dlib_compare,
@@ -68,6 +74,10 @@ comparison = {"dlib": dlib_compare,
 
 def compare_all(descriptors, dsc, threshold, m):
     return comparison[m](descriptors, dsc, threshold)
+
+
+"""Calculates descriptor of the face and compares 
+it agains the descriptors of people in the building and against staff."""
 
 
 def process_image(descriptors, staff_descriptors, staff, img):
@@ -94,12 +104,16 @@ def process_image(descriptors, staff_descriptors, staff, img):
     return True, len(descriptors) - 1, True
 
 
+"""Depending on the return value of the preceding function it appropriately logs people"""
+
+
 def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_map, staff):
+    # each process should close the connection to the database and recreate a new one.
     db.connections.close_all()
     while True:
         camera_id, frame = frame_queue.get(True)
         # print("q:", frame_queue.qsize())
-        start = time.time()
+        # start = time.time()
         camera = database.Camera.objects.get(pk=camera_id)
         room = camera.room
         is_entrance = camera.entrance
@@ -113,6 +127,8 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
 
         last_person = None
         last_camera = None
+
+        # checks if the person has already been logged.
         if database.Log.objects.all().count() > 0 and idx in person_map:
             last_log = database.Log.objects.filter(person__id=person_map[idx]).latest('time')
             last_person = int(last_log.person.id)
@@ -121,14 +137,18 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
         # and is_entrance and not is_exit
         # and not is_entrance and not is_exit
 
+        # if a person has already been logged with the same camera as before, it should be logged again
+        # this protects against continual writing to the database.
         if write_db and last_person is not None and last_camera is not None \
                 and camera_id == last_camera and person_map.get(idx, -1) == last_person:
             print(f"skipping {idx}")
+        # if an entrance camera detects a new face, it should create the person and log them.
         elif write_db and new_idx and is_entrance and not is_exit:
             print(f"new person with id {idx}")
             person = database.Person.objects.create()
             person_map[idx] = person.id
             database.Log.objects.create(person=person, camera=camera, time=timezone.now())
+        # if a camera is neither entrance, nor exit and the person has already been seen. It should only log the person
         elif write_db and not new_idx and not is_entrance and not is_exit:
             if idx in person_map:
                 print(f"logging with id {idx}")
@@ -136,6 +156,8 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
                 database.Log.objects.create(person=person, camera=camera, time=timezone.now())
             else:
                 print(f"person {idx} has not entered")
+        # if an exit camera detects an existing person, it deletes the person from the database and increments
+        # the counter for the room that the camera is located in.
         elif write_db and not new_idx and not is_entrance and is_exit:
             if idx in person_map:
                 database.Person.objects.get(id=person_map[idx]).delete()
@@ -144,10 +166,12 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
                 room.visited += 1
                 room.save()
                 print("person has left the buildings")
+            # protection because of the concurrent access
             else:
                 if 0 <= idx < len(shared_descriptors) and idx not in person_map:
                     del shared_descriptors[idx]
                     print("person has never entered the building")
+        # in all the other cases, the person is deleted from the shared descriptors and no further action is performed
         else:
             if 0 <= idx < len(shared_descriptors) and idx not in person_map:
                 del shared_descriptors[idx]
@@ -160,6 +184,11 @@ def load_staff_descriptors():
         staff_descriptors = pickle.load(infile)
     print("Staff descriptors have been loaded")
     return staff_descriptors
+
+
+"""Periodically prunes logs in an attempt to mitigate the issue of creating multiple people in the database 
+from a single physical person. Multiple records in the Person table for a single physical person happen 
+because of the concurrent access. Works pretty well."""
 
 
 def prune_logs(descriptors, person_map):
@@ -183,6 +212,9 @@ def prune_logs(descriptors, person_map):
         i += 1
 
 
+"""Receives an aligned face from a client via sockets"""
+
+
 def handle_connection(c, frame_queue):
     camera_id = int(c.recv(7).decode())
     fragments = []
@@ -203,6 +235,10 @@ def infer_ip():
     temp_s.connect(("8.8.8.8", 80))
     ip = temp_s.getsockname()[0]
     return ip
+
+
+"""Listens for connections from clients.
+Also creates a pool of process that uses a blocking queue to distribute the workload"""
 
 
 def server_listener():
@@ -271,6 +307,9 @@ def process_staff_descriptors_worker(name, image):
         database.Staff.objects.filter(name=name).delete()
         print("record deleted from database")
     return descriptor
+
+
+""""Calculates descriptors of the staff's faces and saves the descriptors to a file via Pickle"""
 
 
 def process_staff_descriptors():
