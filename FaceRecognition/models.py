@@ -92,8 +92,7 @@ class Client(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     ip = models.CharField(max_length=255)
-    camera1 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera1")
-    camera2 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera2", default=None, null=True, blank=True)
+    cameras = models.ManyToManyField(Camera)
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
     ssh_profile = models.ForeignKey(SSHProfile, on_delete=models.CASCADE)
     ssh_access = models.BooleanField(default=True)
@@ -124,7 +123,9 @@ class Log(models.Model):
         verbose_name_plural = "logs"
 
 
-
+# class ClientCamera(models.Model):
+#     id = models.AutoField(primary_key=True)
+#
 
 
 
