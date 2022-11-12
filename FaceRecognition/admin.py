@@ -120,10 +120,11 @@ class ClientAdmin(admin.ModelAdmin):
     list_display = ['name', 'ip', 'get_server_ip', 'get_ssh_profile', 'ssh_access']
     change_list_template = "FaceRecognition/change_list2.html"
 
-    def save_model(self, request, obj, form, change):
-        n_cameras = len(obj.cameras.all())
+    def save_related(self, request, form, formsets, change):
+        super(ClientAdmin, self).save_related(request, form, formsets, change)
+        n_cameras = form.instance.cameras.count()
         if n_cameras > 2:
-            message = f"{n_cameras} cameras selected. Make sure {obj.name} is not a Unipi."
+            message = f"{n_cameras} cameras selected. Make sure \"{form.instance.name}\" is not a Unipi."
             messages.warning(request, message)
 
     @display(ordering='server__ip', description='Server IP')
