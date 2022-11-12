@@ -53,7 +53,7 @@ class PersonAdmin(admin.ModelAdmin):
 
 class LogAdmin(admin.ModelAdmin):
     list_display = ['person', 'time', 'camera', 'get_room']
-    readonly_fields = ['person', 'time', 'camera']
+    # readonly_fields = ['person', 'time', 'camera']
 
     @display(ordering='camera__room', description='Room')
     def get_room(self, obj):
