@@ -45,8 +45,8 @@ class Room(models.Model):
 
 class SSHProfile(models.Model):
     id = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=255, default="pi")
-    password = models.CharField(max_length=255, default="raspberry")
+    username = models.CharField(max_length=255)
+    password = models.CharField(max_length=255)
 
     def __str__(self):
         return self.username
