@@ -43,6 +43,36 @@ class Room(models.Model):
         return self.name
 
 
+class SSHProfile(models.Model):
+    id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=255, default="pi")
+    password = models.CharField(max_length=255, default="raspberry")
+
+    def __str__(self):
+        return self.username
+
+    def __unicode__(self):
+        return self.username
+
+    class Meta:
+        verbose_name_plural = "SSHProfiles"
+
+
+class Server(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    ip = models.CharField(max_length=255, default=os.environ.get("SERVER_IP", default=FaceRecAPI.infer_ip()))
+
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Servers"
+
+
 class Camera(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
@@ -62,12 +92,11 @@ class Client(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     ip = models.CharField(max_length=255)
-    username = models.CharField(max_length=255, default="pi")
-    password = models.CharField(max_length=255, default="raspberry")
-    server_ip = models.CharField(max_length=255, default=os.environ.get("SERVER_IP", default=FaceRecAPI.infer_ip()))
     camera1 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera1")
     camera2 = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="camera2", default=None, null=True, blank=True)
-    ssh = models.BooleanField(default=True)
+    server = models.ForeignKey(Server, on_delete=models.CASCADE)
+    ssh_profile = models.ForeignKey(SSHProfile, on_delete=models.CASCADE)
+    ssh_access = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -93,3 +122,9 @@ class Log(models.Model):
 
     class Meta:
         verbose_name_plural = "logs"
+
+
+
+
+
+

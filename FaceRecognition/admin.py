@@ -117,8 +117,16 @@ class CameraAdmin(admin.ModelAdmin):
 
 
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ['name', 'ip', 'server_ip', 'camera1', 'camera2', 'ssh']
+    list_display = ['name', 'ip', 'camera1', 'camera2', 'get_server_ip', 'get_ssh_profile', 'ssh_access']
     change_list_template = "FaceRecognition/change_list2.html"
+
+    @display(ordering='server__ip', description='Server IP')
+    def get_server_ip(self, obj):
+        return obj.server.ip
+
+    @display(ordering='ssh_profile__username', description='SSH Profile')
+    def get_ssh_profile(self, obj):
+        return obj.ssh_profile.username
 
     def get_urls(self):
         urls = super().get_urls()
@@ -158,11 +166,21 @@ class RoomAdmin(admin.ModelAdmin):
         return HttpResponseRedirect("../")
 
 
+class SSHProfileAdmin(admin.ModelAdmin):
+    list_display = ['username', 'password']
+
+
+class ServerAdmin(admin.ModelAdmin):
+    list_display = ['name', 'ip']
+
+
 admin.site.register(Client, ClientAdmin)
 admin.site.register(Room, RoomAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Staff, StaffAdmin)
 admin.site.register(Log, LogAdmin)
 admin.site.register(Camera, CameraAdmin)
+admin.site.register(SSHProfile, SSHProfileAdmin)
+admin.site.register(Server, ServerAdmin)
 
 admin.site.site_header = "Face Recognition Administration"
