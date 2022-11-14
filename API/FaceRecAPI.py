@@ -112,7 +112,7 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
     db.connections.close_all()
     while True:
         camera_id, frame = frame_queue.get(True)
-        # print("q:", frame_queue.qsize())
+        print("q:", frame_queue.qsize())
         # start = time.time()
         camera = database.Camera.objects.get(pk=camera_id)
         room = camera.room
@@ -317,14 +317,15 @@ def process_staff_descriptors():
     staff = database.Staff.objects.all()
     names = list(staff.values_list('name', flat=True))
     files = list(staff.values_list('file', flat=True))
-    pool = mp.Pool(processes=mp.cpu_count())
+    pool = mp.Pool(processes=mp.cpu_count() - 2)
     descriptors = (pool.starmap(process_staff_descriptors_worker, zip(names, files)))
     descriptors = [item for item in descriptors if item is not None]
     with open('staff_descriptors.pkl', 'wb') as outfile:
         pickle.dump(descriptors, outfile, pickle.HIGHEST_PROTOCOL)
     outfile.close()
+    pool.close()
+    pool.terminate()
     print("descriptors of staff have been saved")
-
     if len(descriptors) == 0:
         print("No staff found")
         return -1

@@ -3,7 +3,7 @@ services:
   app:
     build: .
     container_name: facerecserver
-    command: gunicorn --bind 0.0.0.0:8000 FaceRecognitionServer.wsgi
+    command: gunicorn --timeout 240 --workers 2 --bind 0.0.0.0:8000 FaceRecognitionServer.wsgi
     volumes:
       - .:/FaceRecognitionServer
     ports:
