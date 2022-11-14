@@ -53,6 +53,7 @@ class PersonAdmin(admin.ModelAdmin):
 
 class LogAdmin(admin.ModelAdmin):
     list_display = ['person', 'time', 'camera', 'get_room']
+
     # readonly_fields = ['person', 'time', 'camera']
 
     @display(ordering='camera__room', description='Room')
@@ -106,7 +107,7 @@ class StaffAdmin(admin.ModelAdmin):
     def image_tag(self, obj):
         return mark_safe('<img src="{url}" height={height} />'.format(
             url=obj.file.url,
-            height=150,))
+            height=150, ))
 
     image_tag.short_description = 'Image'
 
@@ -182,9 +183,6 @@ class RoomAdmin(admin.ModelAdmin):
 
 class SSHProfileAdmin(admin.ModelAdmin):
     list_display = ['username', 'encrypted_password']
-
-
-
 
 
 class ServerAdmin(admin.ModelAdmin):

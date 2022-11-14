@@ -18,7 +18,6 @@ and echo the configuration or restart the Docker container"""
 def execute(ssh, client, command, action):
     try:
         print(f"{action}: ", client.ip)
-        print("PUSH", client.ssh_profile.encrypted_password)
         ssh.connect(client.ip, username=client.ssh_profile.username, password=client.ssh_profile.encrypted_password, timeout=5)
         _, _, _ = ssh.exec_command(command)
         print(f"{action} successful")
