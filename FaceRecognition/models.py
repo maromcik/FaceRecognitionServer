@@ -1,7 +1,49 @@
 import os
 
+from cryptography.fernet import Fernet
 from django.db import models
 from API import FaceRecAPI
+from FaceRecognitionServer import settings
+
+
+class PasswordField(models.CharField):
+    description = "Encrypted password"
+
+    def __init__(self, *args, **kwargs):
+        kwargs['max_length'] = 1024
+        super().__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        del kwargs["max_length"]
+        return name, path, args, kwargs
+
+    def get_prep_value(self, value):
+        f = Fernet(settings.PASSWORD_KEY)
+        print("getprepval", value)
+        if value is None:
+            return ""
+        encrypted = f.encrypt(value.encode('utf-8'))
+        return encrypted.decode('utf-8')
+
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return value
+        f = Fernet(settings.PASSWORD_KEY)
+        decrypted = f.decrypt(value.encode('utf-8'))
+        return decrypted.decode('utf-8')
+
+    def to_python(self, value):
+        if isinstance(value, SSHProfile):
+            return value
+        if value is None:
+            return value
+        # f = Fernet(settings.PASSWORD_KEY)
+        # print("PYTHON", value)
+        # decrypted = f.decrypt(value.encode('utf-8'))
+        # return decrypted.decode('utf-8')
+        return value
+
 
 
 class Person(models.Model):
@@ -18,7 +60,7 @@ class Person(models.Model):
 
 class Staff(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=255)
     file = models.ImageField(upload_to="")
 
     def __str__(self):
@@ -46,7 +88,7 @@ class Room(models.Model):
 class SSHProfile(models.Model):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=255)
-    password = models.CharField(max_length=255)
+    encrypted_password = PasswordField(max_length=1024)
 
     def __str__(self):
         return self.username
@@ -93,8 +135,8 @@ class Client(models.Model):
     name = models.CharField(max_length=255)
     ip = models.CharField(max_length=255)
     cameras = models.ManyToManyField(Camera)
-    server = models.ForeignKey(Server, on_delete=models.CASCADE)
-    ssh_profile = models.ForeignKey(SSHProfile, on_delete=models.CASCADE)
+    server = models.ForeignKey(Server, on_delete=models.PROTECT)
+    ssh_profile = models.ForeignKey(SSHProfile, on_delete=models.PROTECT)
     ssh_access = models.BooleanField(default=True)
 
     def __str__(self):

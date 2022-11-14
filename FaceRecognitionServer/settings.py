@@ -30,6 +30,8 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", default="192.168.1.52").s
 SECRET_KEY = os.environ.get("SECRET_KEY", default='&21vr&audc=3&vg%b1nkc9!#66!c6-uu6mvdf51**eb2%x4!09')
 # SECRET_KEY = '&21vr&audc=3&vg%b1nkc9!#66!c6-uu6mvdf51**eb2%x4!09'
 
+PASSWORD_KEY = os.environ.get("PASSWORD_KEY", default='hbk_X95RtxqO1mQR5U8efzwOeQ12ylLlvN1-UzNk01I=').encode('utf-8')
+
 INSTALLED_APPS = [
     'FaceRecognition.apps.FaceRecognitionConfig',
     'django.contrib.admin',

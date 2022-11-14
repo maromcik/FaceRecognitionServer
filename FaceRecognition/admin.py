@@ -181,7 +181,10 @@ class RoomAdmin(admin.ModelAdmin):
 
 
 class SSHProfileAdmin(admin.ModelAdmin):
-    list_display = ['username', 'password']
+    list_display = ['username', 'encrypted_password']
+
+
+
 
 
 class ServerAdmin(admin.ModelAdmin):
