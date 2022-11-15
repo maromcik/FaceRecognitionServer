@@ -2,7 +2,7 @@
 build=false
 superuser=false
 
-while getopts ":b" option; do
+while getopts ":bs" option; do
   case $option in
     h) echo "usage: $0 [-h] [-b] [-s]"; exit ;;
     b) build=true ;;
