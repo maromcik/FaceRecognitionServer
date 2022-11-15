@@ -34,3 +34,4 @@ services:
       - ./media/:/var/www/media/
     ports:
       - "80:80"
+      - "443:443"

@@ -31,7 +31,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", default='&21vr&audc=3&vg%b1nkc9!#66!c6
 # SECRET_KEY = '&21vr&audc=3&vg%b1nkc9!#66!c6-uu6mvdf51**eb2%x4!09'
 
 # CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1"]
-# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 PASSWORD_KEY = os.environ.get("PASSWORD_KEY", default='hbk_X95RtxqO1mQR5U8efzwOeQ12ylLlvN1-UzNk01I=').encode('utf-8')
 
 INSTALLED_APPS = [
