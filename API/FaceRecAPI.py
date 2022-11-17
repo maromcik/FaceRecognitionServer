@@ -111,7 +111,7 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
     # each process should close the connection to the database and recreate a new one.
     db.connections.close_all()
     while True:
-        camera_id, frame, stamp = frame_queue.get(True)
+        camera_id, frame, time_stamp = frame_queue.get(True)
         print("q:", frame_queue.qsize())
         # start = time.time()
         camera = database.Camera.objects.get(pk=camera_id)
@@ -147,13 +147,13 @@ def process(frame_queue, shared_descriptors, shared_staff_descriptors, person_ma
             print(f"new person with id {idx}")
             person = database.Person.objects.create()
             person_map[idx] = person.id
-            database.Log.objects.create(person=person, camera=camera, time=stamp)
+            database.Log.objects.create(person=person, camera=camera, time=time_stamp)
         # if a camera is neither entrance, nor exit and the person has already been seen. It should only log the person
         elif write_db and not new_idx and not is_entrance and not is_exit:
             if idx in person_map:
                 print(f"logging with id {idx}")
                 person = database.Person.objects.get(id=person_map[idx])
-                database.Log.objects.create(person=person, camera=camera, time=stamp)
+                database.Log.objects.create(person=person, camera=camera, time=time_stamp)
             else:
                 print(f"person {idx} has not entered")
         # if an exit camera detects an existing person, it deletes the person from the database and increments
