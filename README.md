@@ -1,8 +1,9 @@
-# Face recognition server
+# Face Recognition Server
 This application allows tracking customers around premises of a company. 
 
-It receives detected and aligned faces from client devices and performs face recognition on them and logs their movement. Faces of staff are ignored.
+It receives detected and aligned faces from client devices (see [FaceRecognition](https://github.com/maromcik/FaceRecognition)) and performs face recognition on them and logs their movement. Faces of staff are ignored.
 The management interface is build using Django.
+The clients are configured via this server.
 
 ### Installation instructions
 * Install ```docker``` and ```docker-compose```
