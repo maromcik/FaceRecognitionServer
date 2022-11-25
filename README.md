@@ -1,8 +1,9 @@
 # Face recognition server
+This application allows tracking customers around premises of a company. 
 
-You can use the provided script ```run.sh``` that accepts ```-b``` switch to build apps and migrate databases. Use this switch if running for the first time.
+It receives detected and aligned faces from client devices and performs face recognition on them and logs their movement. Faces of staff are ignored.
+The management interface is build using Django.
 
-If you do not want to use the script you can build this app with standard Docker commands 
 ### Installation instructions
 * Install ```docker``` and ```docker-compose```
 * Clone this repository
@@ -10,3 +11,10 @@ If you do not want to use the script you can build this app with standard Docker
 * Then enter these commands: \
 ```docker-compose run app python3 manage.py migrate``` \
 ```docker-compose run app python3 manage.py createsuperuser```
+
+You can use the provided script ```run.sh``` to run the application (executes ```docker-compose up```).
+
+Furthermore, it accepts the following switches:
+* ```-b``` - to build the images and execute ```docker-compose run app python3 manage.py migrate``` to migrate the database.
+* ```-s``` - to create a superuser by executing ```docker-compose run app python3 manage.py createsuperuser```
+ 
