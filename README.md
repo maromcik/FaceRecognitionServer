@@ -6,7 +6,7 @@ The management interface is build using Django.
 The clients are configured via this server.
 
 ### Installation instructions
-* Install ```docker``` and ```docker-compose```
+* Install [Docker](https://docs.docker.com/engine/install/ubuntu/) and [Docker Compose](https://docs.docker.com/compose/install/linux/#install-using-the-repository)
 * Clone this repository
 * In current directory execute command ```docker-compose up --build```
 * Then enter these commands: \
