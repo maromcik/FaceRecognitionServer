@@ -6,7 +6,6 @@ receiving frames from clients and the logic of logging people.
 import os
 import pickle
 import socket
-import time
 import numpy as np
 import multiprocessing as mp
 import threading as mt
@@ -27,6 +26,7 @@ detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor("models/shape_predictor_68_face_landmarks.dat")
 
 model = "dlib"
+N_CPU = mp.cpu_count()
 
 
 def dlib_dsc(face):
@@ -262,7 +262,7 @@ def server_listener():
     pruner.add_job(prune_logs, 'interval', seconds=30, args=(shared_descriptors, person_map))
     pruner.start()
     frame_queue = mp.Queue()
-    pool = mp.Pool(mp.cpu_count() - 1, process,
+    pool = mp.Pool(N_CPU - 2, process,
                    (frame_queue, shared_descriptors, shared_staff_descriptors, person_map, staff,), )
 
     port = int(os.environ.get("SERVER_PORT", default=5555))
@@ -316,7 +316,7 @@ def process_staff_descriptors():
     staff = database.Staff.objects.all()
     names = list(staff.values_list('name', flat=True))
     files = list(staff.values_list('file', flat=True))
-    pool = mp.Pool(processes=mp.cpu_count() - 2)
+    pool = mp.Pool(processes=N_CPU - 1)
     descriptors = (pool.starmap(process_staff_descriptors_worker, zip(names, files)))
     descriptors = [item for item in descriptors if item is not None]
     with open('staff_descriptors.pkl', 'wb') as outfile:
