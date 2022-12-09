@@ -248,6 +248,7 @@ def server_listener():
     staff = False
     try:
         shared_staff_descriptors[:] = load_staff_descriptors()[:]
+        staff = True
     except FileNotFoundError:
         print("Creating staff descriptors")
         ret = process_staff_descriptors()
