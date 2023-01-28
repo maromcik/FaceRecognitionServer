@@ -95,7 +95,7 @@ def process_image(descriptors, staff_descriptors, staff, img):
         descriptors.append(dsc)
         # this is a new person and shared descriptors are empty
         return True, 0, True
-    exists, idx = compare_all(descriptors, dsc, 0.56, model)
+    exists, idx = compare_all(descriptors, dsc, 0.55, model)
     if exists:
         # this is an existing person
         return True, idx, False
