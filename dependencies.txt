@@ -1,1 +1,5 @@
 sudo apt-get install cmake git python3-pip python3-dev default-libmysqlclient-dev build-essential
+
+sudo apt install python3-pip python3-dev libpq-dev postgresql postgresql-contrib
+
+dnf install libpq-devel python3-devel
