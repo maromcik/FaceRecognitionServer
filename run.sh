@@ -14,11 +14,11 @@ shift $(( OPTIND - 1 ))
 
 if [ "$build" = true ] ; then
   sudo docker-compose build
-	docker-compose run app python3 manage.py migrate
+	podman-compose run app python3 manage.py migrate
 fi
 
 if [ "$superuser" = true ] ; then
-  docker-compose run app python3 manage.py createsuperuser
+  podman-compose run app python3 manage.py createsuperuser
 fi
 
-docker-compose up
+podman-compose up
