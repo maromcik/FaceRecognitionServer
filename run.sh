@@ -13,7 +13,7 @@ done
 shift $(( OPTIND - 1 ))
 
 if [ "$build" = true ] ; then
-  sudo docker-compose build
+  sudo podman-compose build
 	podman-compose run app python3 manage.py migrate
 fi
 
