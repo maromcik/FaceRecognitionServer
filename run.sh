@@ -21,4 +21,4 @@ if [ "$superuser" = true ] ; then
   podman-compose run app python3 manage.py createsuperuser
 fi
 
-podman-compose up
+podman-compose up -d
